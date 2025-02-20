@@ -21,13 +21,13 @@ export function Header({ onEvaluation }: HeaderProps) {
           <a href="/" className="flex-shrink-0">
             {/* Mobile: Show favicon */}
             <img 
-              src="https://drive.google.com/thumbnail?id=14Xzz2rmQwJZcQ0LrG4VqNbfWGaWCLsAB&sz=w1000"
+              src="/bh ig logo.png"
               alt="Beacon House"
               className="h-8 w-auto sm:hidden"
             />
             {/* Tablet and up: Show full logo */}
             <img
-              src="https://drive.google.com/thumbnail?id=14Xzz2rmQwJZcQ0LrG4VqNbfWGaWCLsAB&sz=w1000"
+              src="/bh ig logo.png"
               alt="Beacon House"
               className="hidden sm:block h-12 w-auto"
             />
