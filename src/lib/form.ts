@@ -25,7 +25,6 @@ export const submitFormData = async (
 
   const basePayload = {
     ...data,
-    source: 'website_MMYYYY',
     completion_status: isComplete ? 'complete' : 'partial',
     current_step: step,
     total_time_spent: currentTime,

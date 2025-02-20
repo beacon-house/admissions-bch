@@ -7,6 +7,7 @@ import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
 import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
 import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
+import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
 
 export default function FormContainer() {
@@ -92,7 +93,15 @@ export default function FormContainer() {
       });
       
       const finalData = { ...formData, ...data };
-      await submitFormData(finalData, 3, startTime, true);
+      // Add lead category to the final data
+      const leadCategory = determineLeadCategory(
+        finalData.currentGrade,
+        finalData.studyAbroadPriority,
+        finalData.scholarshipRequirement,
+        finalData.curriculumType
+      );
+      const enrichedData = { ...finalData, lead_category: leadCategory };
+      await submitFormData(enrichedData, 3, startTime, true);
       setSubmitting(false);      
       setSubmitted(true);
     } catch (error) {
