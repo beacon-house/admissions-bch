@@ -30,6 +30,24 @@ export const trackEvent = (
   }
 };
 
+// Form-specific tracking functions
+export const trackFormView = () => trackEvent('form_view');
+
+export const trackFormStepComplete = (step: number) => {
+  trackEvent('form_step_complete', { step });
+};
+
+export const trackFormAbandonment = (currentStep: number, startTime: number) => {
+  trackEvent('form_abandonment', {
+    last_step: currentStep,
+    time_spent: Math.floor((Date.now() - startTime) / 1000)
+  });
+};
+
+export const trackFormError = (step: number, error: string) => {
+  trackEvent('form_error', { step, error });
+};
+
 // Type declarations for gtag
 declare global {
   interface Window {

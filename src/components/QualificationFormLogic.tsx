@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabase';
 import { trackEvent } from '@/lib/analytics';
 
 export const determineLeadCategory = (
@@ -6,32 +5,32 @@ export const determineLeadCategory = (
   studyAbroadPriority: string,
   scholarshipRequirement: string,
   curriculumType: string
-): 'bch' | 'luminaire' | 'nurture' | 'masters' => {
+): string => {
   // STEP 1: IMMEDIATE CATEGORIZATION RULES
   
   // State Board students always go to Luminaire
   if (curriculumType === 'State_Boards') {
-    return 'luminaire';
+    return 'LUMINAIRE';
   }
 
   // Masters applicants go to Masters category
   if (currentGrade === 'masters') {
-    return 'masters';
+    return 'MASTERS';
   }
 
   // Grade 7 or below goes to Nurture
   if (currentGrade === '7_below') {
-    return 'nurture';
+    return 'NURTURE';
   }
 
   // Grade 12 always goes to Nurture
   if (currentGrade === '12') {
-    return 'nurture';
+    return 'NURTURE';
   }
 
   // Grade 11 always goes to Luminaire
   if (currentGrade === '11') {
-    return 'luminaire';
+    return 'LUMINAIRE';
   }
 
   // STEP 2: GRADES 8-10 EVALUATION
@@ -41,7 +40,7 @@ export const determineLeadCategory = (
       scholarshipRequirement === 'good_to_have' ||
       studyAbroadPriority === 'main_focus'
     ) {
-      return 'bch';
+      return 'BCH';
     }
 
     // Nurture case: Need scholarships AND not fully committed to study abroad
@@ -49,14 +48,14 @@ export const determineLeadCategory = (
       scholarshipRequirement === 'must_have' &&
       ['backup_plan', 'still_exploring'].includes(studyAbroadPriority)
     ) {
-      return 'nurture';
+      return 'NURTURE';
     }
     // Luminaire case: All remaining Grade 8-10 students
-    return 'luminaire';
+    return 'LUMINAIRE';
   }
 
   // 3. Default fallback
-  return 'nurture';
+  return 'NURTURE';
 };
 
 export const submitPartialForm = async (
@@ -72,31 +71,35 @@ export const submitPartialForm = async (
   startTime: number
 ) => {
   const step1CompletionTime = Math.floor((Date.now() - startTime) / 1000);
-  
-  const { error: leadError } = await supabase
-    .from('beacon_house_leads')
-    .insert({
-      student_first_name: data.studentFirstName,
-      student_last_name: data.studentLastName,
-      parent_name: data.parentName,
-      email: data.email,
-      phone_number: data.phoneNumber,
-      whatsapp_consent: data.whatsappConsent,
-      current_grade: data.currentGrade,
+
+  const webhookUrl = import.meta.env.VITE_REGISTRATION_WEBHOOK_URL;
+  if (!webhookUrl) {
+    throw new Error('Webhook URL not configured');
+  }
+
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...data,
       source: 'website_MMYYYY',
       completion_status: 'partial',
       current_step: 1,
       total_time_spent: step1CompletionTime,
       step1_completion_time: step1CompletionTime,
-      lead_category: data.currentGrade === 'masters' ? 'masters' : 'nurture',
-    })
-    .single();
+      lead_category: data.currentGrade === 'masters' ? 'MASTERS' : 'NURTURE',
+    }),
+  });
 
-  if (leadError) throw leadError;
+  if (!response.ok) {
+    throw new Error('Failed to submit form');
+  }
 
   trackEvent('form_submission', { 
     status: 'success',
-    type: data.currentGrade === 'masters' ? 'masters' : 'early_years',
+    type: data.currentGrade === 'masters' ? 'MASTERS' : 'EARLY_YEARS',
     completion_time: step1CompletionTime
   });
 };
@@ -125,25 +128,18 @@ export const submitCompleteForm = async (
   const step3CompletionTime = Math.floor((Date.now() - startTime) / 1000);
   const step1CompletionTime = Math.floor((Date.now() - startTime) / 1000);
 
-  const { data: lead, error: leadError } = await supabase
-    .from('beacon_house_leads')
-    .insert({
-      student_first_name: finalData.studentFirstName,
-      student_last_name: finalData.studentLastName,
-      parent_name: finalData.parentName,
-      form_filler_type: finalData.formFillerType,
-      email: finalData.email,
-      phone_number: finalData.phoneNumber,
-      whatsapp_consent: finalData.whatsappConsent,
-      current_grade: finalData.currentGrade,
-      school_name: finalData.schoolName,
-      curriculum_type: finalData.curriculumType,
-      academic_performance: finalData.academicPerformance,
-      study_abroad_priority: finalData.studyAbroadPriority,
-      preferred_countries: finalData.preferredCountries,
-      target_university_rank: finalData.targetUniversityRank,
-      scholarship_requirement: finalData.scholarshipRequirement,
-      timeline_commitment: finalData.timelineCommitment,
+  const webhookUrl = import.meta.env.VITE_REGISTRATION_WEBHOOK_URL;
+  if (!webhookUrl) {
+    throw new Error('Webhook URL not configured');
+  }
+
+  const response = await fetch(webhookUrl, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      ...finalData,
       source: 'website_MMYYYY',
       completion_status: 'complete',
       current_step: 3,
@@ -157,11 +153,12 @@ export const submitCompleteForm = async (
         finalData.scholarshipRequirement,
         finalData.curriculumType
       ),
-    })
-    .select('lead_id')
-    .single();
+    }),
+  });
 
-  if (leadError) throw leadError;
+  if (!response.ok) {
+    throw new Error('Failed to submit form');
+  }
 
   trackEvent('form_submission', {
     status: 'success',
@@ -173,8 +170,6 @@ export const submitCompleteForm = async (
       finalData.curriculumType
     )
   });
-
-  return lead;
 };
 
 export const trackFormView = () => {

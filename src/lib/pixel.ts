@@ -17,14 +17,14 @@ const EVENT_PREFIXES = {
 
 // Helper function to get environment-specific event name
 export const getEventName = (prefix: string): string => {
-  const environment = import.meta.env.VITE_ENVIRONMENT || 'dev';
+  const environment = import.meta.env.VITE_ENVIRONMENT?.trim() || 'dev';
   return `${prefix}_${environment}`;
 };
 
 // Initialize Meta Pixel
 export const initializePixel = (): void => {
   try {
-    const pixelId = import.meta.env.VITE_META_PIXEL_ID;
+    const pixelId = import.meta.env.VITE_META_PIXEL_ID?.trim();
     if (!pixelId) {
       console.error('Meta Pixel ID not found in environment variables');
       return;
