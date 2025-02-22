@@ -8,7 +8,7 @@ import QualificationForm from './QualificationForm';
 export default function LandingPage() {
   const [showForm, setShowForm] = React.useState(() => {
     // Check if URL hash matches #qualification-form
-    return window.location.hash === '#qualification-form';
+    return window.location.hash === '#questionnaire';
   });
 
   // Export scrollToForm for use in App.tsx
@@ -17,8 +17,8 @@ export default function LandingPage() {
     window.scrollToForm = () => {
       setShowForm(true);
       setTimeout(() => {
-        document.getElementById('qualification-form')?.scrollIntoView({ behavior: window.location.hash ? 'auto' : 'smooth' });
-        const firstInput = document.querySelector('#qualification-form input, #qualification-form select');
+        document.getElementById('questionnaire')?.scrollIntoView({ behavior: window.location.hash ? 'auto' : 'smooth' });
+        const firstInput = document.querySelector('#questionnaire input, #questionnaire select');
         if (firstInput instanceof HTMLElement) {
           firstInput.focus();
         }
@@ -27,11 +27,11 @@ export default function LandingPage() {
     
     // Handle hash changes
     const handleHashChange = () => {
-      if (window.location.hash === '#qualification-form') {
+      if (window.location.hash === '#questionnaire') {
         setShowForm(true);
         setTimeout(() => {
-          document.getElementById('qualification-form')?.scrollIntoView({ behavior: 'auto' });
-          const firstInput = document.querySelector('#qualification-form input, #qualification-form select');
+          document.getElementById('questionnaire')?.scrollIntoView({ behavior: 'auto' });
+          const firstInput = document.querySelector('#questionnaire input, #questionnaire select');
           if (firstInput instanceof HTMLElement) {
             firstInput.focus();
           }
@@ -43,7 +43,7 @@ export default function LandingPage() {
     window.addEventListener('hashchange', handleHashChange);
     
     // Initial check on mount
-    if (window.location.hash === '#qualification-form') {
+    if (window.location.hash === '#questionnaire') {
       handleHashChange();
     }
 
@@ -379,7 +379,7 @@ export default function LandingPage() {
       
       {/* Qualification Form Section */}
       {showForm && (
-        <section id="qualification-form" className="py-20 bg-gray-50">
+        <section id="questionnaire" className="py-20 bg-gray-50">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <QualificationForm />
           </div>

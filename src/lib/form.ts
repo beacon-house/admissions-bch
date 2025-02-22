@@ -18,13 +18,20 @@ export const submitFormData = async (
 ): Promise<Response> => {
   const webhookUrl = import.meta.env.VITE_REGISTRATION_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
-    throw new Error('Webhook URL not configured');
+    throw new Error('Form submission URL not configured. Please check environment variables.');
   }
 
   const currentTime = Math.floor((Date.now() - startTime) / 1000);
 
+  // Format source with current month and year
+  const date = new Date();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  const source = `website_${month}${year}`;
+
   const basePayload = {
     ...data,
+    source,
     completion_status: isComplete ? 'complete' : 'partial',
     current_step: step,
     total_time_spent: currentTime,
@@ -37,19 +44,30 @@ export const submitFormData = async (
     ...(step === 3 && { step3_completion_time: Math.floor(currentTime * 0.4) }),
   };
 
+  // Ensure all data is properly formatted
+  const formattedPayload = {
+    ...basePayload,
+    ...timePayload,
+    created_at: new Date().toISOString(),
+  };
+
   const response = await fetch(webhookUrl, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      ...basePayload,
-      ...timePayload,
-    }),
+    body: JSON.stringify(formattedPayload),
   });
 
+  // Enhanced error handling with response details
   if (!response.ok) {
-    throw new Error('Failed to submit form');
+    const errorText = await response.text().catch(() => 'No error details available');
+    console.error('Form submission failed:', {
+      status: response.status,
+      statusText: response.statusText,
+      errorText
+    });
+    throw new Error(`Form submission failed: ${response.status} ${response.statusText}`);
   }
 
   return response;
