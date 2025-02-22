@@ -6,7 +6,10 @@ import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
 import QualificationForm from './QualificationForm';
 
 export default function LandingPage() {
-  const [showForm, setShowForm] = React.useState(false);
+  const [showForm, setShowForm] = React.useState(() => {
+    // Check if URL hash matches #qualification-form
+    return window.location.hash === '#qualification-form';
+  });
 
   // Export scrollToForm for use in App.tsx
   React.useEffect(() => {
@@ -14,12 +17,38 @@ export default function LandingPage() {
     window.scrollToForm = () => {
       setShowForm(true);
       setTimeout(() => {
-        document.getElementById('qualification-form')?.scrollIntoView({ behavior: 'smooth' });
+        document.getElementById('qualification-form')?.scrollIntoView({ behavior: window.location.hash ? 'auto' : 'smooth' });
         const firstInput = document.querySelector('#qualification-form input, #qualification-form select');
         if (firstInput instanceof HTMLElement) {
           firstInput.focus();
         }
       }, 0);
+    };
+    
+    // Handle hash changes
+    const handleHashChange = () => {
+      if (window.location.hash === '#qualification-form') {
+        setShowForm(true);
+        setTimeout(() => {
+          document.getElementById('qualification-form')?.scrollIntoView({ behavior: 'auto' });
+          const firstInput = document.querySelector('#qualification-form input, #qualification-form select');
+          if (firstInput instanceof HTMLElement) {
+            firstInput.focus();
+          }
+        }, 0);
+      }
+    };
+
+    // Listen for hash changes
+    window.addEventListener('hashchange', handleHashChange);
+    
+    // Initial check on mount
+    if (window.location.hash === '#qualification-form') {
+      handleHashChange();
+    }
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
     };
   }, []);
 
