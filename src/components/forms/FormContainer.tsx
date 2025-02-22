@@ -51,7 +51,7 @@ export default function FormContainer() {
         });
       } else {
         console.error('Error submitting form:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
         trackFormError(1, 'submission_error');
       }
       setSubmitting(false);
@@ -111,7 +111,7 @@ export default function FormContainer() {
         });
       } else {
         console.error('Error submitting form:', error);
-        toast.error('An unexpected error occurred. Please try again.');
+        toast.error(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
         trackFormError(3, 'submission_error');
       }
       setSubmitting(false);
