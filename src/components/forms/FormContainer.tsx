@@ -77,11 +77,7 @@ export default function FormContainer() {
         finalData.targetUniversityRank
       );
       const enrichedData = { ...finalData, lead_category: leadCategory };
-<<<<<<< Updated upstream
-      await submitFormData(enrichedData, 3, startTime, true);
-=======
       await submitFormData(enrichedData, 2, startTime, true);
->>>>>>> Stashed changes
       setSubmitting(false);      
       setSubmitted(true);
     } catch (error) {

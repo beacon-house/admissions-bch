@@ -23,33 +23,6 @@ export const submitFormData = async (
 
   const currentTime = Math.floor((Date.now() - startTime) / 1000);
 
-<<<<<<< Updated upstream
-  // Format source with current month and year
-  const date = new Date();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  const source = `website_${month}${year}`;
-
-  const basePayload = {
-    ...data,
-    source,
-    completion_status: isComplete ? 'complete' : 'partial',
-    current_step: step,
-    total_time_spent: currentTime,
-  };
-
-  // Add step-specific completion times
-  const timePayload = {
-    ...(step >= 1 && { step1_completion_time: Math.floor(currentTime * 0.3) }),
-    ...(step >= 2 && { step2_completion_time: Math.floor(currentTime * 0.3) }),
-    ...(step === 3 && { step3_completion_time: Math.floor(currentTime * 0.4) }),
-  };
-
-  // Ensure all data is properly formatted
-  const formattedPayload = {
-    ...basePayload,
-    ...timePayload,
-=======
   // Create a clean payload with just the data we need
   const formattedPayload = {
     // User-submitted data
@@ -75,7 +48,6 @@ export const submitFormData = async (
     
     // Metadata
     total_time_spent: currentTime,
->>>>>>> Stashed changes
     created_at: new Date().toISOString(),
   };
 

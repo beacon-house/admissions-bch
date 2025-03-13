@@ -28,10 +28,6 @@ export const academicDetailsSchema = z.object({
   targetUniversityRank: z.enum(TARGET_UNIVERSITY_RANKS),
   preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   scholarshipRequirement: z.enum(SCHOLARSHIP_REQUIREMENTS),
-<<<<<<< Updated upstream
-  timelineCommitment: z.enum(TIMELINE_COMMITMENTS),
-=======
->>>>>>> Stashed changes
 });
 
 // Complete Form Schema

@@ -36,10 +36,6 @@ export interface AcademicFormData {
   targetUniversityRank: typeof TARGET_UNIVERSITY_RANKS[number];
   preferredCountries: string[];
   scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
-<<<<<<< Updated upstream
-  timelineCommitment: typeof TIMELINE_COMMITMENTS[number];
-=======
->>>>>>> Stashed changes
 }
 
 // Combined form data type
