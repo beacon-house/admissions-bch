@@ -1,5 +1,5 @@
 import { LeadCategory, CompleteFormData } from '@/types/form';
-import { personalDetailsSchema, academicDetailsSchema, commitmentSchema } from '@/schemas/form';
+import { personalDetailsSchema, academicDetailsSchema } from '@/schemas/form';
 import { ZodError } from 'zod';
 
 export class FormValidationError extends Error {
@@ -23,6 +23,7 @@ export const submitFormData = async (
 
   const currentTime = Math.floor((Date.now() - startTime) / 1000);
 
+<<<<<<< Updated upstream
   // Format source with current month and year
   const date = new Date();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -48,8 +49,37 @@ export const submitFormData = async (
   const formattedPayload = {
     ...basePayload,
     ...timePayload,
+=======
+  // Create a clean payload with just the data we need
+  const formattedPayload = {
+    // User-submitted data
+    studentFirstName: data.studentFirstName,
+    studentLastName: data.studentLastName,
+    parentName: data.parentName,
+    email: data.email,
+    phoneNumber: data.phoneNumber,
+    whatsappConsent: data.whatsappConsent,
+    currentGrade: data.currentGrade,
+    formFillerType: data.formFillerType,
+    curriculumType: data.curriculumType,
+    
+    // Additional form fields if available
+    schoolName: data.schoolName,
+    academicPerformance: data.academicPerformance,
+    targetUniversityRank: data.targetUniversityRank,
+    preferredCountries: data.preferredCountries,
+    scholarshipRequirement: data.scholarshipRequirement,
+    
+    // Lead categorization
+    lead_category: data.lead_category,
+    
+    // Metadata
+    total_time_spent: currentTime,
+>>>>>>> Stashed changes
     created_at: new Date().toISOString(),
   };
+
+  console.log('Sending webhook data:', formattedPayload);
 
   const response = await fetch(webhookUrl, {
     method: 'POST',
@@ -86,9 +116,6 @@ export const validateForm = async (
       case 2:
         await academicDetailsSchema.parseAsync(data);
         break;
-      case 3:
-        await commitmentSchema.parseAsync(data);
-        break;
       default:
         throw new Error('Invalid form step');
     }
@@ -119,8 +146,6 @@ export const validateFormStep = (
         return personalDetailsSchema.safeParse(data).success;
       case 2:
         return academicDetailsSchema.safeParse(data).success;
-      case 3:
-        return commitmentSchema.safeParse(data).success;
       default:
         return false;
     }

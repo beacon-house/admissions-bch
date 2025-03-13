@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Progress } from '../ui/progress';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AcademicDetailsForm } from './AcademicDetailsForm';
-import { CommitmentForm } from './CommitmentForm';
 import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
 import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
@@ -61,47 +60,28 @@ export default function FormContainer() {
   const onSubmitStep2 = async (data: CompleteFormData) => {
     try {
       await validateForm(2, data);
-      updateFormData(data);
-      
-      trackPixelEvent({
-        name: PIXEL_EVENTS.FORM_PAGE2,
-        options: { curriculum: data.curriculumType }
-      });
-      trackFormStepComplete(2);
-      setStep(3);
-    } catch (error) {
-      if (error instanceof FormValidationError) {
-        Object.values(error.errors).forEach(messages => {
-          messages.forEach(message => toast.error(message));
-        });
-      } else {
-        console.error('Error validating form:', error);
-        toast.error('An unexpected error occurred. Please try again.');
-        trackFormError(2, 'validation_error');
-      }
-    }
-  };
-
-  const onSubmitStep3 = async (data: CompleteFormData) => {
-    try {
-      await validateForm(3, data);
       setSubmitting(true);
       
       trackPixelEvent({
-        name: PIXEL_EVENTS.FORM_PAGE3,
-        options: { timeline: data.timelineCommitment }
+        name: PIXEL_EVENTS.FORM_PAGE2,
+        options: { target_rank: data.targetUniversityRank }
       });
       
       const finalData = { ...formData, ...data };
       // Add lead category to the final data
       const leadCategory = determineLeadCategory(
         finalData.currentGrade,
-        finalData.studyAbroadPriority,
+        finalData.formFillerType,
         finalData.scholarshipRequirement,
-        finalData.curriculumType
+        finalData.curriculumType,
+        finalData.targetUniversityRank
       );
       const enrichedData = { ...finalData, lead_category: leadCategory };
+<<<<<<< Updated upstream
       await submitFormData(enrichedData, 3, startTime, true);
+=======
+      await submitFormData(enrichedData, 2, startTime, true);
+>>>>>>> Stashed changes
       setSubmitting(false);      
       setSubmitted(true);
     } catch (error) {
@@ -112,7 +92,7 @@ export default function FormContainer() {
       } else {
         console.error('Error submitting form:', error);
         toast.error(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
-        trackFormError(3, 'submission_error');
+        trackFormError(2, 'submission_error');
       }
       setSubmitting(false);
     }
@@ -120,9 +100,8 @@ export default function FormContainer() {
 
   const getStepProgress = () => {
     switch (currentStep) {
-      case 1: return 33;
-      case 2: return 66;
-      case 3: return 100;
+      case 1: return 50;
+      case 2: return 100;
       default: return 0;
     }
   };
@@ -191,14 +170,6 @@ export default function FormContainer() {
           <AcademicDetailsForm
             onSubmit={onSubmitStep2}
             onBack={() => setStep(1)}
-            defaultValues={formData}
-          />
-        )}
-
-        {currentStep === 3 && (
-          <CommitmentForm
-            onSubmit={onSubmitStep3}
-            onBack={() => setStep(2)}
             defaultValues={formData}
           />
         )}

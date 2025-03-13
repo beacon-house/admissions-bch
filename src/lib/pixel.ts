@@ -11,8 +11,7 @@ const EVENT_PREFIXES = {
   CTA_HEADER: 'admissions_cta_header',
   CTA_HERO: 'admissions_cta_hero',
   FORM_PAGE1: 'admissions_page1_continue',
-  FORM_PAGE2: 'admissions_page2_next',
-  FORM_PAGE3: 'admissions_page3_submit_application',
+  FORM_PAGE2: 'admissions_page2_submit',
 } as const;
 
 // Helper function to get environment-specific event name
@@ -66,5 +65,4 @@ export const PIXEL_EVENTS = {
   CTA_HERO: getEventName(EVENT_PREFIXES.CTA_HERO),
   FORM_PAGE1: getEventName(EVENT_PREFIXES.FORM_PAGE1),
   FORM_PAGE2: getEventName(EVENT_PREFIXES.FORM_PAGE2),
-  FORM_PAGE3: getEventName(EVENT_PREFIXES.FORM_PAGE3),
 } as const;

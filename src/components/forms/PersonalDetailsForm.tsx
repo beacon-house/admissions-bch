@@ -18,6 +18,7 @@ import { cn } from '@/lib/utils';
 const personalDetailsSchema = z.object({
   currentGrade: z.enum(['12', '11', '10', '9', '8', '7_below', 'masters']),
   formFillerType: z.enum(['parent', 'student']),
+  curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
   studentFirstName: z.string().min(2, 'First name is required'),
   studentLastName: z.string().min(1, 'Last name is required'),
   parentName: z.string().min(2, 'Parent name is required'),
@@ -84,6 +85,26 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
         </Select>
         {errors.currentGrade && (
           <p className="text-sm text-red-500">{errors.currentGrade.message}</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="curriculumType">Curriculum Type</Label>
+        <Select onValueChange={(value) => setValue('curriculumType', value as PersonalDetailsData['curriculumType'])}>
+          <SelectTrigger className="h-12 bg-white">
+            <SelectValue placeholder="Select curriculum" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="IB">IB</SelectItem>
+            <SelectItem value="IGCSE">IGCSE</SelectItem>
+            <SelectItem value="CBSE">CBSE</SelectItem>
+            <SelectItem value="ICSE">ICSE</SelectItem>
+            <SelectItem value="State_Boards">State Boards</SelectItem>
+            <SelectItem value="Others">Others</SelectItem>
+          </SelectContent>
+        </Select>
+        {errors.curriculumType && (
+          <p className="text-sm text-red-500">{errors.curriculumType.message}</p>
         )}
       </div>
 
