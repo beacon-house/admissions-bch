@@ -77,7 +77,7 @@ export default function LandingPage() {
                 </div>
                 <button 
                   onClick={handleScrollToForm}
-                  className="bg-accent text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-accent-light transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="hero-cta bg-accent text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-accent-light transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   Request an Evaluation
                 </button>

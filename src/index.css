@@ -105,3 +105,19 @@
     @apply bg-accent text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-accent-light transition-all duration-300 shadow-md hover:shadow-lg;
   }
 }
+
+/* Mobile sticky CTA animations */
+@keyframes slideInDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.mobile-sticky-cta {
+  animation: slideInDown 0.3s ease-out forwards;
+}
