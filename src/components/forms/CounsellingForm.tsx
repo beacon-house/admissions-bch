@@ -148,35 +148,48 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
         </div>
 
         {/* Calendar Booking Section - 60% width on desktop */}
-        <div className="bg-white rounded-xl border-2 border-accent/30 shadow-md p-6 flex flex-col md:col-span-6">
-          <div className="mb-4">
+        <div className="md:col-span-6">
+          <div className="mb-4 p-4 bg-white rounded-xl md:border-2 md:border-accent/30 md:shadow-md">
             <h4 className="text-lg font-semibold text-primary mb-2 flex items-center">
               <Calendar className="w-5 h-5 mr-2 text-accent" />
               Book Your Strategy Session
             </h4>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-4">
               Select a convenient date and time to meet with {isBCH ? "Viswanathan" : "Karthik"}
             </p>
-          </div>
           
-          <div className="flex-grow relative rounded-lg overflow-hidden border shadow-sm">
             {/* Google Calendar Appointment Scheduling iframe */}
-            <iframe 
-              ref={calendarRef}
-              src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ1w2IGqwbng3SLqzc2vTpz3Eo89nueT8_nSX5FTi4fxEAIikDRO70a3an30FbGIknzG2O5_FH9x?gv=true" 
-              style={{ border: 0 }} 
-              width="100%" 
-              height="500" 
-              frameBorder="0"
-              title="Select a Counselling Slot"
-              className="w-full"
-            ></iframe>
-          </div>
-          
-          <div className="mt-3 bg-primary/5 rounded-lg p-3 border border-primary/10">
-            <p className="text-sm text-center font-medium">
-              After booking your session, your application will be automatically submitted.
-            </p>
+            <div className="w-full overflow-hidden">
+              {isBCH ? (
+                <iframe 
+                  ref={calendarRef}
+                  src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ2zIu2-c5X26ahjTSkRsCM1ylgz396869XxCVr9CmbaGgQxag_-Laj7HGPcKcsZ4ySW16ocYTnh?gv=true" 
+                  style={{ border: 0 }} 
+                  width="100%" 
+                  height="600" 
+                  frameBorder="0"
+                  title="Select a Counselling Slot"
+                  className="w-full"
+                ></iframe>
+              ) : (
+                <iframe 
+                  ref={calendarRef}
+                  src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ36ypV_jEDk5i6nxMNGpNN5h2xEWm33stJsGB7YU5_SortE8oM9dwQ4Iy0kwbpoKopDkyqerG_H?gv=true" 
+                  style={{ border: 0 }} 
+                  width="100%" 
+                  height="600" 
+                  frameBorder="0"
+                  title="Select a Counselling Slot"
+                  className="w-full"
+                ></iframe>
+              )}
+            </div>
+            
+            <div className="mt-3 bg-primary/5 rounded-lg p-3 border border-primary/10">
+              <p className="text-sm text-center font-medium">
+                After booking your session, your application will be automatically submitted.
+              </p>
+            </div>
           </div>
         </div>
       </div>

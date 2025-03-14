@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Progress } from '../ui/progress';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AcademicDetailsForm } from './AcademicDetailsForm';
+import { MastersAcademicDetailsForm } from './MastersAcademicDetailsForm';
 import { CounsellingForm } from './CounsellingForm';
+import { SequentialLoadingAnimation } from '../ui/SequentialLoadingAnimation';
 import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
 import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
@@ -23,10 +25,9 @@ export default function FormContainer() {
     setSubmitted
   } = useFormStore();
 
-  // Scroll to the top of the form when changing steps
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [currentStep]);
+  // State for the evaluation interstitial
+  const [showEvaluationAnimation, setShowEvaluationAnimation] = useState(false);
+  const [evaluatedLeadCategory, setEvaluatedLeadCategory] = useState<string | null>(null);
 
   const onSubmitStep1 = async (data: any) => {
     try {
@@ -40,7 +41,6 @@ export default function FormContainer() {
       trackFormStepComplete(1);
       
       // If grade 7 or below, submit form immediately
-      // Masters applications proceed to step 2 like all others
       if (data.currentGrade === '7_below') {
         setSubmitting(true);
         await submitFormData(data, 1, startTime);
@@ -66,10 +66,17 @@ export default function FormContainer() {
 
   const onSubmitStep2 = async (data: any) => {
     try {
-      // First submit the form data to capture the lead
-      setSubmitting(true);
+      // For masters applications, we have different form validation
+      if (formData.currentGrade === 'masters') {
+        // We don't need to validate here as the form components handle validation
+      } else {
+        await validateForm(2, data);
+      }
       
+      // Combine form data
       const finalData = { ...formData, ...data };
+      
+      // Determine lead category
       const leadCategory = formData.currentGrade === 'masters' 
         ? 'MASTERS' 
         : determineLeadCategory(
@@ -79,34 +86,49 @@ export default function FormContainer() {
             finalData.curriculumType,
             finalData.targetUniversityRank
           );
-
-      // Update local state with all the data including lead category
+      
+      // Save lead category to state
+      setEvaluatedLeadCategory(leadCategory);
+      
+      // Update form store with lead category and new data
       updateFormData({ 
         ...data,
         lead_category: leadCategory 
       });
       
-      // Send data to webhook
-      await submitFormData({ ...finalData, lead_category: leadCategory }, 2, startTime, false);
-      setSubmitting(false);
-      
       trackPixelEvent({
         name: PIXEL_EVENTS.FORM_PAGE2,
         options: { 
-          target_rank: data.targetUniversityRank,
-          lead_category: leadCategory
+          lead_category: leadCategory,
+          is_masters: formData.currentGrade === 'masters'
         }
       });
       
-      // If NURTURE, complete the form submission
+      // Different flows based on lead category
       if (leadCategory === 'NURTURE') {
+        // For NURTURE leads, submit directly
+        setSubmitting(true);
+        await submitFormData({ ...finalData, lead_category: leadCategory }, 2, startTime, true);
+        setSubmitting(false);
         setSubmitted(true);
-        return;
+      } else {
+        // For non-NURTURE leads, show evaluation animation
+        setSubmitting(true);
+        setShowEvaluationAnimation(true);
+        
+        // Submit data in background
+        submitFormData(
+          { ...finalData, lead_category: leadCategory }, 
+          2, 
+          startTime,
+          false
+        ).then(() => {
+          // We continue regardless as the animation will handle the transition
+        }).catch(error => {
+          console.error('Error submitting form in background:', error);
+          // Even if there's an error, we still allow the animation to complete
+        });
       }
-      
-      // For all other categories (including MASTERS), proceed to counseling step
-      setStep(3);
-      trackFormStepComplete(2);
     } catch (error) {
       if (error instanceof FormValidationError) {
         Object.values(error.errors).forEach(messages => {
@@ -138,7 +160,8 @@ export default function FormContainer() {
         name: PIXEL_EVENTS.FORM_COMPLETE,
         options: { 
           lead_category: formData.lead_category,
-          counselling_booked: Boolean(data.selectedDate && data.selectedSlot)
+          counselling_booked: Boolean(data.selectedDate && data.selectedSlot),
+          is_masters: formData.currentGrade === 'masters'
         }
       });
       
@@ -152,6 +175,14 @@ export default function FormContainer() {
       trackFormError(3, 'submission_error');
       setSubmitting(false);
     }
+  };
+
+  // Handle completion of evaluation animation
+  const handleEvaluationComplete = () => {
+    setShowEvaluationAnimation(false);
+    setSubmitting(false);
+    setStep(3);
+    trackFormStepComplete(2);
   };
 
   const getStepProgress = () => {
@@ -171,6 +202,25 @@ export default function FormContainer() {
       }
     };
   }, [currentStep, isSubmitted, startTime]);
+
+  // Evaluation steps for the animation - longer durations for a more relaxed pace
+  const evaluationSteps = [
+    {
+      message: `Analyzing your ${formData.currentGrade === 'masters' ? 'profile and program fit' : 'academic profile and curriculum fit'}`,
+      duration: 3500
+    },
+    {
+      message: `Processing ${formData.currentGrade === 'masters' ? 'graduate admission criteria' : 'admission criteria and program compatibility'}`,
+      duration: 3500
+    },
+    {
+      message: `Connecting you with our ${evaluatedLeadCategory === 'BCH' ? 'Beacon House' : 'Luminaire'} admission experts`,
+      duration: 3500
+    }
+  ];
+
+  // Determine if we're handling a masters application
+  const isMastersApplication = formData.currentGrade === 'masters';
 
   if (isSubmitted) {
     return (
@@ -195,18 +245,14 @@ export default function FormContainer() {
     );
   }
 
-  if (isSubmitting) {
+  if (isSubmitting && !showEvaluationAnimation) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="animate-pulse text-2xl font-semibold mb-4 text-primary">
-          {currentStep === 2 && formData.lead_category !== 'NURTURE' 
-            ? "Evaluating Your Profile" 
-            : "Processing Your Application"}
+          Processing Your Application
         </div>
         <p className="text-center text-gray-600 max-w-md">
-          {currentStep === 2 && formData.lead_category !== 'NURTURE'
-            ? "Please wait while we analyze your admissions potential..."
-            : "Please wait while we securely submit your application..."}
+          Please wait while we securely submit your application...
         </p>
       </div>
     );
@@ -216,33 +262,55 @@ export default function FormContainer() {
     <div id="qualification-form" className="animate-fade-in">
       <div className="text-center mb-6">
         <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8">
-          Transform Your Journey to Elite Universities
+          {isMastersApplication ? "Transform Your Masters Journey" : "Transform Your Journey to Elite Universities"}
         </h2>
         <Progress value={getStepProgress()} className="mb-4" />
       </div>
 
-      <div className={`space-y-8 bg-white rounded-xl shadow-xl p-8 border border-gray-100 ${currentStep === 3 ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
-        {currentStep === 1 && (
-          <PersonalDetailsForm
-            onSubmit={onSubmitStep1}
-            defaultValues={formData}
-          />
+      <div className={`relative space-y-8 bg-white rounded-xl shadow-xl p-8 border border-gray-100 ${currentStep === 3 ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
+        {/* Loading animation overlay */}
+        {showEvaluationAnimation && (
+          <div className="absolute inset-0 flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl"></div>
+            <SequentialLoadingAnimation
+              steps={evaluationSteps}
+              onComplete={handleEvaluationComplete}
+              className="z-20"
+            />
+          </div>
         )}
+        
+        <div className={showEvaluationAnimation ? 'blur-sm' : ''}>
+          {currentStep === 1 && (
+            <PersonalDetailsForm
+              onSubmit={onSubmitStep1}
+              defaultValues={formData}
+            />
+          )}
 
-        {currentStep === 2 && (
-          <AcademicDetailsForm
-            onSubmit={onSubmitStep2}
-            onBack={() => setStep(1)}
-            defaultValues={formData}
-          />
-        )}
+          {currentStep === 2 && isMastersApplication && (
+            <MastersAcademicDetailsForm
+              onSubmit={onSubmitStep2}
+              onBack={() => setStep(1)}
+              defaultValues={formData}
+            />
+          )}
 
-        {currentStep === 3 && (
-          <CounsellingForm
-            onSubmit={onSubmitStep3}
-            leadCategory={formData.lead_category}
-          />
-        )}
+          {currentStep === 2 && !isMastersApplication && (
+            <AcademicDetailsForm
+              onSubmit={onSubmitStep2}
+              onBack={() => setStep(1)}
+              defaultValues={formData}
+            />
+          )}
+
+          {currentStep === 3 && (
+            <CounsellingForm
+              onSubmit={onSubmitStep3}
+              leadCategory={formData.lead_category}
+            />
+          )}
+        </div>
       </div>
     </div>
   );

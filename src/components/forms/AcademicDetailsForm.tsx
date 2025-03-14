@@ -16,6 +16,7 @@ import {
 
 // Step 2: Academic Qualification Schema
 const academicDetailsSchema = z.object({
+  curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
   schoolName: z.string().min(2, 'School name is required'),
   academicPerformance: z.enum(['top_5', 'top_10', 'top_25', 'others']),
   targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
@@ -24,7 +25,7 @@ const academicDetailsSchema = z.object({
   contactMethods: z.object({
     call: z.boolean().default(false),
     callNumber: z.string().optional(),
-    whatsapp: z.boolean().default(false),
+    whatsapp: z.boolean().default(true),
     whatsappNumber: z.string().optional(),
     email: z.boolean().default(true),
     emailAddress: z.string().email().optional(),
@@ -45,7 +46,7 @@ interface AcademicDetailsFormProps {
 export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: AcademicDetailsFormProps) {
   // Initialize state with values from previous form inputs where available
   const [callChecked, setCallChecked] = useState(defaultValues?.contactMethods?.call || false);
-  const [whatsappChecked, setWhatsappChecked] = useState(defaultValues?.contactMethods?.whatsapp || false);
+  const [whatsappChecked, setWhatsappChecked] = useState(defaultValues?.contactMethods?.whatsapp !== false); // Default to true unless explicitly false
   const [emailChecked, setEmailChecked] = useState(defaultValues?.contactMethods?.email !== false); // Default to true if not explicitly false
   
   const {
@@ -61,7 +62,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
       contactMethods: {
         call: defaultValues?.contactMethods?.call || false,
         callNumber: defaultValues?.contactMethods?.callNumber || defaultValues?.phoneNumber || '',
-        whatsapp: defaultValues?.contactMethods?.whatsapp || false,
+        whatsapp: defaultValues?.contactMethods?.whatsapp !== false, // Default to true unless explicitly false
         whatsappNumber: defaultValues?.contactMethods?.whatsappNumber || defaultValues?.phoneNumber || '',
         email: defaultValues?.contactMethods?.email !== false, // Default to true if not explicitly false
         emailAddress: defaultValues?.contactMethods?.emailAddress || defaultValues?.email || '',
@@ -117,25 +118,53 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     }
   };
 
-  // Determine if this is for Masters application
-  const isMastersApplication = defaultValues?.currentGrade === 'masters';
+  const handleBack = () => {
+    window.scrollTo(0, 0);
+    onBack();
+  };
+
+  const handleFormSubmit = (data: AcademicDetailsData) => {
+    window.scrollTo(0, 0);
+    onSubmit(data);
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="flex items-center space-x-2 mb-6">
         <Trophy className="w-6 h-6 text-primary" />
         <h3 className="text-xl font-semibold text-primary">
-          {isMastersApplication ? "Masters Program Details" : "Academic & Investment Details"}
+          Academic & Investment Details
         </h3>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="schoolName">
-            {isMastersApplication ? "Current/Previous University" : "School Name"}
-          </Label>
+          <Label htmlFor="curriculumType">Curriculum Type</Label>
+          <Select 
+            onValueChange={(value) => setValue('curriculumType', value as AcademicDetailsData['curriculumType'])}
+            defaultValue={defaultValues?.curriculumType}
+          >
+            <SelectTrigger className="h-12 bg-white">
+              <SelectValue placeholder="Select curriculum" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="IB">IB</SelectItem>
+              <SelectItem value="IGCSE">IGCSE</SelectItem>
+              <SelectItem value="CBSE">CBSE</SelectItem>
+              <SelectItem value="ICSE">ICSE</SelectItem>
+              <SelectItem value="State_Boards">State Boards</SelectItem>
+              <SelectItem value="Others">Others</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.curriculumType && (
+            <p className="text-sm text-red-500">{errors.curriculumType.message}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="schoolName">School Name</Label>
           <Input
-            placeholder={isMastersApplication ? "Enter your university name" : "Enter your school name"}
+            placeholder="Enter your school name"
             id="schoolName"
             {...register('schoolName')}
             className="h-12"
@@ -190,34 +219,13 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
         <div className="space-y-2">
           <Label>Target Geographies</Label>
           <p className="text-sm text-gray-600 mb-2">
-            Select your preferred destinations {!isMastersApplication && "(includes typical budget ranges)"}
+            Select your preferred destinations (includes typical budget ranges)
           </p>
           {errors.preferredCountries && (
             <p className="text-sm text-red-500 mb-2">{errors.preferredCountries.message}</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {isMastersApplication ? [
-              'USA',
-              'UK',
-              'Canada',
-              'Australia',
-              'Europe',
-              'Asia (Singapore, Hong Kong)',
-              'Middle East',
-              'Other Geographies',
-              'Need Guidance'
-            ].map((country) => (
-              <label key={country} className="flex items-start space-x-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
-                <input
-                  type="checkbox"
-                  {...register('preferredCountries')}
-                  value={country}
-                  defaultChecked={defaultValues?.preferredCountries?.includes(country)}
-                  className="rounded border-gray-300 text-primary focus:ring-primary mt-1"
-                />
-                <span className="text-sm leading-tight">{country}</span>
-              </label>
-            )) : [
+            {[
               'USA (Rs. 1.6-2 Cr)',
               'UK (Rs. 1.2-1.6 Cr)',
               'Canada (Rs. 1.2-1.6 Cr)',
@@ -360,7 +368,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
       <div className="flex justify-between mt-8">
         <button
           type="button"
-          onClick={onBack}
+          onClick={handleBack}
           className="bg-gray-100 text-gray-700 h-14 px-8 rounded-lg text-lg font-semibold hover:bg-gray-200 transition-all duration-300 flex items-center space-x-2"
         >
           <ChevronLeft className="w-5 h-5" />
