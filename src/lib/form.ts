@@ -50,7 +50,7 @@ export const submitFormData = async (
   }
 
   // Create a clean payload with just the data we need
-  const formattedPayload = {
+  const formattedPayload: Record<string, any> = {
     // User-submitted data
     studentFirstName: data.studentFirstName,
     studentLastName: data.studentLastName,
@@ -69,6 +69,21 @@ export const submitFormData = async (
     preferredCountries: data.preferredCountries,
     scholarshipRequirement: data.scholarshipRequirement,
     
+    // Masters-specific fields
+    ...(data.currentGrade === 'masters' && {
+      intake: data.intake,
+      intakeOther: data.intakeOther,
+      graduationStatus: data.graduationStatus,
+      graduationYear: data.graduationYear,
+      workExperience: data.workExperience,
+      fieldOfStudy: data.fieldOfStudy,
+      gradeFormat: data.gradeFormat,
+      gpaValue: data.gpaValue,
+      percentageValue: data.percentageValue,
+      entranceExam: data.entranceExam,
+      examScore: data.examScore
+    }),
+    
     // Lead categorization
     lead_category: data.lead_category,
     
@@ -81,8 +96,7 @@ export const submitFormData = async (
     
     // Metadata
     total_time_spent: currentTime,
-    created_at: new Date().toISOString(),
-    form_completion_step: step
+    created_at: new Date().toISOString()
   };
 
   console.log('Sending webhook data:', formattedPayload);

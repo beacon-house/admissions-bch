@@ -9,7 +9,7 @@ export default function FormPage() {
       
       <main className="flex-grow pt-16 pb-20">
         <section className="py-8 bg-gray-50 min-h-[calc(100vh-10rem)]">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full mx-auto">
             <FormContainer />
           </div>
         </section>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Progress } from '../ui/progress';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AcademicDetailsForm } from './AcademicDetailsForm';
@@ -25,9 +25,12 @@ export default function FormContainer() {
     setSubmitted
   } = useFormStore();
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
   // State for the evaluation interstitial
   const [showEvaluationAnimation, setShowEvaluationAnimation] = useState(false);
   const [evaluatedLeadCategory, setEvaluatedLeadCategory] = useState<string | null>(null);
+  const [compactForm, setCompactForm] = useState(false);
 
   const onSubmitStep1 = async (data: any) => {
     try {
@@ -49,6 +52,7 @@ export default function FormContainer() {
         return;
       }
       
+      window.scrollTo(0, 0);
       setStep(2);
     } catch (error) {
       if (error instanceof FormValidationError) {
@@ -104,6 +108,10 @@ export default function FormContainer() {
         }
       });
       
+      // Shrink the form before showing evaluation animation
+      window.scrollTo(0, 0);
+      setCompactForm(true);
+      
       // Different flows based on lead category
       if (leadCategory === 'NURTURE') {
         // For NURTURE leads, submit directly
@@ -113,21 +121,23 @@ export default function FormContainer() {
         setSubmitted(true);
       } else {
         // For non-NURTURE leads, show evaluation animation
-        setSubmitting(true);
-        setShowEvaluationAnimation(true);
-        
-        // Submit data in background
-        submitFormData(
-          { ...finalData, lead_category: leadCategory }, 
-          2, 
-          startTime,
-          false
-        ).then(() => {
-          // We continue regardless as the animation will handle the transition
-        }).catch(error => {
-          console.error('Error submitting form in background:', error);
-          // Even if there's an error, we still allow the animation to complete
-        });
+        setTimeout(() => {
+          setSubmitting(true);
+          setShowEvaluationAnimation(true);
+          
+          // Submit data in background
+          submitFormData(
+            { ...finalData, lead_category: leadCategory }, 
+            2, 
+            startTime,
+            false
+          ).then(() => {
+            // We continue regardless as the animation will handle the transition
+          }).catch(error => {
+            console.error('Error submitting form in background:', error);
+            // Even if there's an error, we still allow the animation to complete
+          });
+        }, 300); // Small delay to ensure form shrinking animation completes
       }
     } catch (error) {
       if (error instanceof FormValidationError) {
@@ -180,6 +190,7 @@ export default function FormContainer() {
   // Handle completion of evaluation animation
   const handleEvaluationComplete = () => {
     setShowEvaluationAnimation(false);
+    setCompactForm(false);
     setSubmitting(false);
     setStep(3);
     trackFormStepComplete(2);
@@ -267,11 +278,14 @@ export default function FormContainer() {
         <Progress value={getStepProgress()} className="mb-4" />
       </div>
 
-      <div className={`relative space-y-8 bg-white rounded-xl shadow-xl p-8 border border-gray-100 ${currentStep === 3 ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
-        {/* Loading animation overlay */}
+      <div 
+        ref={containerRef}
+        className={`relative space-y-8 transition-all duration-300 ease-in-out mx-auto px-4 sm:px-8 md:px-12 ${currentStep === 3 ? 'max-w-full' : 'max-w-full md:max-w-4xl'} 
+          ${compactForm ? 'max-h-[40vh] overflow-hidden opacity-30' : ''}`}
+      >
+        {/* Loading animation overlay - positioned in the center of the viewport */}
         {showEvaluationAnimation && (
-          <div className="absolute inset-0 flex items-center justify-center z-10">
-            <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-xl"></div>
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-white/90">
             <SequentialLoadingAnimation
               steps={evaluationSteps}
               onComplete={handleEvaluationComplete}
@@ -280,7 +294,7 @@ export default function FormContainer() {
           </div>
         )}
         
-        <div className={showEvaluationAnimation ? 'blur-sm' : ''}>
+        <div className={showEvaluationAnimation ? 'pointer-events-none' : ''}>
           {currentStep === 1 && (
             <PersonalDetailsForm
               onSubmit={onSubmitStep1}

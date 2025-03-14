@@ -54,12 +54,12 @@ export function SequentialLoadingAnimation({
   
   return (
     <div className={cn(
-      "relative z-20 bg-white/95 backdrop-blur-md rounded-xl shadow-lg p-8",
+      "relative z-20 bg-white rounded-xl shadow-xl p-8 max-w-[90vw] w-full max-w-md mx-auto",
       className
     )}>
-      <div className="space-y-10 w-full max-w-md mx-auto">
-        <div className="mb-6 text-center">
-          <h3 className="text-lg font-medium text-primary mb-2">Analyzing Your Profile</h3>
+      <div className="space-y-8 w-full">
+        <div className="mb-4 text-center">
+          <h3 className="text-xl font-semibold text-primary mb-2">Analyzing Your Profile</h3>
           <p className="text-sm text-gray-500">Please wait while we evaluate your information</p>
         </div>
         
@@ -74,19 +74,19 @@ export function SequentialLoadingAnimation({
             )}
           >
             {/* Visual Step Indicator */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-3 mb-3">
               <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center border-2",
+                "w-7 h-7 rounded-full flex items-center justify-center border-2",
                 index < currentStep ? "border-green-500 bg-green-50 text-green-600" :
                 index === currentStep ? "border-primary bg-primary/10 text-primary" :
                 "border-gray-300 bg-gray-50 text-gray-400"
               )}>
                 {index < currentStep ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className="text-sm font-medium">{index + 1}</span>
+                  <span className="text-xs font-medium">{index + 1}</span>
                 )}
               </div>
               
@@ -102,7 +102,7 @@ export function SequentialLoadingAnimation({
             
             {/* Progress bar - only visible for current step */}
             {index === currentStep && (
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden ml-11">
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden ml-10">
                 <div 
                   className="h-full bg-primary rounded-full origin-left"
                   style={{
@@ -114,7 +114,7 @@ export function SequentialLoadingAnimation({
             
             {/* Pulsing dots - only shown for current step */}
             {index === currentStep && (
-              <div className="flex items-center gap-1 mt-2 ml-11">
+              <div className="flex items-center gap-1 mt-2 ml-10">
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot1"></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot2"></div>
                 <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot3"></div>
@@ -123,13 +123,6 @@ export function SequentialLoadingAnimation({
           </div>
         ))}
       </div>
-      
-      <style>{`
-        @keyframes progressGrow {
-          from { transform: scaleX(0); }
-          to { transform: scaleX(1); }
-        }
-      `}</style>
     </div>
   );
 }

@@ -177,3 +177,35 @@
 .animate-pulse-text {
   animation: pulse 1.5s ease-in-out infinite;
 }
+
+/* Progress animation */
+@keyframes progressGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+/* Form transitions */
+@keyframes formShrink {
+  from { max-height: 100vh; opacity: 1; }
+  to { max-height: 40vh; opacity: 0.3; }
+}
+
+/* Calendar iframe for mobile */
+@media (max-width: 768px) {
+  /* Adjust padding on FormPage for calendar view */
+  .min-h-\[calc\(100vh-10rem\)\] {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  /* Make calendar container full width on mobile */
+  section[class*="py-8"] > div[class*="max-w-6xl mx-auto"] {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  /* Ensure loading animation is visible on mobile */
+  .fixed.inset-0.flex.items-center.justify-center.z-50 {
+    padding: 1rem;
+  }
+}
