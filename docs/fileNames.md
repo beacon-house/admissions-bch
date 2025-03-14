@@ -1,7 +1,7 @@
 # Project Files Documentation
 
 ## Project Overview
-This is a React-based landing page and lead generation system for Beacon House, an elite university admissions consultancy. The project uses Vite as the build tool, React with TypeScript for the frontend, Tailwind CSS for styling, and a webhook-based form submission system.
+This is a React-based landing page and lead generation system for Beacon House, an elite university admissions consultancy. The project uses Vite as the build tool, React with TypeScript for the frontend, Tailwind CSS for styling, and a webhook-based form submission system with advanced lead categorization.
 
 ## Tech Stack
 - Frontend Framework: React 18.3.1 with TypeScript
@@ -52,10 +52,9 @@ This is a React-based landing page and lead generation system for Beacon House, 
 #### Components (`/src/components`)
 
 1. Form Components (`/forms`)
-   - `FormContainer.tsx`: Main form orchestration
+   - `FormContainer.tsx`: Main form orchestration and submission logic
    - `PersonalDetailsForm.tsx`: Step 1 of form
-   - `AcademicDetailsForm.tsx`: Step 2 of form
-   - `CommitmentForm.tsx`: Step 3 of form
+   - `AcademicDetailsForm.tsx`: Step 2 of form with academic and investment details
    - Dependencies: React Hook Form, Zod, form store
 
 2. UI Components (`/ui`)
@@ -64,6 +63,7 @@ This is a React-based landing page and lead generation system for Beacon House, 
    - `progress.tsx`: Progress bar component
    - `select.tsx`: Select dropdown component
    - `toast.tsx`: Toast notification system
+   - `card.tsx`: Card component for structured content
 
 3. Page Components
    - `Header.tsx`: Navigation and branding
@@ -79,11 +79,11 @@ This is a React-based landing page and lead generation system for Beacon House, 
 #### Library Files (`/src/lib`)
 1. Analytics
    - `analytics.ts`: Google Analytics integration
-   - `pixel.ts`: Meta Pixel tracking
+   - `pixel.ts`: Meta Pixel tracking with environment-specific events
    
 2. Form Handling
    - `form.ts`: Form validation and submission
-   - `leadCategorization.ts`: Lead categorization logic
+   - `leadCategorization.ts`: Advanced lead categorization with BCH, Luminaire, and Masters logic
 
 #### Types and Schemas
 1. `/src/types`
@@ -119,29 +119,31 @@ This is a React-based landing page and lead generation system for Beacon House, 
 ## Important Notes
 1. Analytics Integration
    - Google Analytics for event tracking
-   - Meta Pixel for conversion tracking
+   - Meta Pixel for conversion tracking with environment-specific events
    - Hotjar for user behavior analysis
 
 2. Form Implementation
    - Multi-step form with validation
-   - Lead categorization logic
+   - Advanced lead categorization system
    - Webhook-based submission
    - Progress tracking
+   - Mobile-optimized layout with sticky CTA
 
 3. Performance Optimizations
    - Font loading optimization
    - Image preloading
    - Code splitting
    - Asset optimization
+   - Mobile-first responsive design
 
 4. Security
    - Form validation
    - Input sanitization
    - Error handling
    - Rate limiting
+   - Environment-specific configurations
 
 5. Deployment
    - Netlify configuration
    - Environment variables
    - Build optimization
-   - Cache control

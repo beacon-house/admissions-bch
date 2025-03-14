@@ -23,6 +23,32 @@ export const submitFormData = async (
 
   const currentTime = Math.floor((Date.now() - startTime) / 1000);
 
+  // Parse counselling data for webhook
+  const counsellingSlotPicked = Boolean(
+    data.counselling?.selectedDate && data.counselling?.selectedSlot
+  );
+  
+  // Get preferred communication methods
+  const preferredContactMethods = [];
+  const contactDetails = {};
+  
+  if (data.contactMethods) {
+    if (data.contactMethods.call) {
+      preferredContactMethods.push('call');
+      contactDetails.callNumber = data.contactMethods.callNumber || data.phoneNumber;
+    }
+    
+    if (data.contactMethods.whatsapp) {
+      preferredContactMethods.push('whatsapp');
+      contactDetails.whatsappNumber = data.contactMethods.whatsappNumber || data.phoneNumber;
+    }
+    
+    if (data.contactMethods.email) {
+      preferredContactMethods.push('email');
+      contactDetails.emailAddress = data.contactMethods.emailAddress || data.email;
+    }
+  }
+
   // Create a clean payload with just the data we need
   const formattedPayload = {
     // User-submitted data
@@ -46,9 +72,17 @@ export const submitFormData = async (
     // Lead categorization
     lead_category: data.lead_category,
     
+    // Counselling data
+    counsellingSlotPicked: counsellingSlotPicked,
+    counsellingDate: data.counselling?.selectedDate || null,
+    counsellingTime: data.counselling?.selectedSlot || null,
+    preferredContactMethods: preferredContactMethods.length > 0 ? preferredContactMethods : null,
+    ...contactDetails,
+    
     // Metadata
     total_time_spent: currentTime,
     created_at: new Date().toISOString(),
+    form_completion_step: step
   };
 
   console.log('Sending webhook data:', formattedPayload);

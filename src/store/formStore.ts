@@ -23,7 +23,11 @@ export const useFormStore = create<FormState>((set, get) => ({
   isSubmitted: false,
   startTime: Date.now(),
   
-  setStep: (step) => set({ currentStep: step }),
+  setStep: (step) => {
+    set({ currentStep: step });
+    // Scroll to top of the form when changing steps
+    window.scrollTo(0, 0);
+  },
   
   updateFormData: (data) => set((state) => ({
     formData: { ...state.formData, ...data }

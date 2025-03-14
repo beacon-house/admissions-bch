@@ -36,10 +36,27 @@ export interface AcademicFormData {
   targetUniversityRank: typeof TARGET_UNIVERSITY_RANKS[number];
   preferredCountries: string[];
   scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
+  contactMethods: {
+    call: boolean;
+    callNumber?: string;
+    whatsapp: boolean;
+    whatsappNumber?: string;
+    email: boolean;
+    emailAddress?: string;
+  }
+}
+
+export interface CounsellingFormData {
+  selectedDate?: string;
+  selectedSlot?: string;
 }
 
 // Combined form data type
-export type CompleteFormData = BaseFormData & AcademicFormData;
+export type CompleteFormData = BaseFormData & 
+  AcademicFormData & {
+    lead_category?: LeadCategory;
+    counselling?: CounsellingFormData;
+  };
 
 // Form submission response
 export interface FormSubmissionResponse {
