@@ -59,8 +59,8 @@ export function SequentialLoadingAnimation({
     )}>
       <div className="space-y-8 w-full">
         <div className="mb-4 text-center">
-          <h3 className="text-xl font-semibold text-primary mb-2">Analyzing Your Profile</h3>
-          <p className="text-sm text-gray-500">Please wait while we evaluate your information</p>
+          <h3 className="text-xl font-bold text-primary mb-2">Analyzing Your Profile</h3>
+          <p className="text-sm text-gray-700">Please wait while we evaluate your information</p>
         </div>
         
         {steps.map((step, index) => (
@@ -68,33 +68,33 @@ export function SequentialLoadingAnimation({
             key={index} 
             className={cn(
               "transition-all duration-500",
-              index < currentStep ? "opacity-60" : 
+              index < currentStep ? "opacity-70" : 
               index === currentStep ? "opacity-100" : 
-              "opacity-30"
+              "opacity-40"
             )}
           >
             {/* Visual Step Indicator */}
             <div className="flex items-center gap-3 mb-3">
               <div className={cn(
-                "w-7 h-7 rounded-full flex items-center justify-center border-2",
-                index < currentStep ? "border-green-500 bg-green-50 text-green-600" :
+                "w-8 h-8 rounded-full flex items-center justify-center border-2",
+                index < currentStep ? "border-green-600 bg-green-50 text-green-700" :
                 index === currentStep ? "border-primary bg-primary/10 text-primary" :
-                "border-gray-300 bg-gray-50 text-gray-400"
+                "border-gray-400 bg-gray-50 text-gray-500"
               )}>
                 {index < currentStep ? (
-                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : (
-                  <span className="text-xs font-medium">{index + 1}</span>
+                  <span className="text-sm font-semibold">{index + 1}</span>
                 )}
               </div>
               
               <span className={cn(
-                "text-sm font-medium flex-1",
-                index < currentStep ? "text-green-600" :
+                "text-base font-semibold flex-1",
+                index < currentStep ? "text-green-700" :
                 index === currentStep ? "text-primary" :
-                "text-gray-400"
+                "text-gray-500"
               )}>
                 {step.message}
               </span>
@@ -102,7 +102,7 @@ export function SequentialLoadingAnimation({
             
             {/* Progress bar - only visible for current step */}
             {index === currentStep && (
-              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden ml-10">
+              <div className="h-2 bg-gray-100 rounded-full overflow-hidden ml-10">
                 <div 
                   className="h-full bg-primary rounded-full origin-left"
                   style={{
@@ -115,9 +115,9 @@ export function SequentialLoadingAnimation({
             {/* Pulsing dots - only shown for current step */}
             {index === currentStep && (
               <div className="flex items-center gap-1 mt-2 ml-10">
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot1"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot2"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse-dot3"></div>
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse-dot1"></div>
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse-dot2"></div>
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse-dot3"></div>
               </div>
             )}
           </div>

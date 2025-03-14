@@ -225,7 +225,7 @@ export default function FormContainer() {
       duration: 3500
     },
     {
-      message: `Connecting you with our ${evaluatedLeadCategory === 'BCH' ? 'Beacon House' : 'Luminaire'} admission experts`,
+      message: `Connecting you with our Beacon House admission experts`,
       duration: 3500
     }
   ];
