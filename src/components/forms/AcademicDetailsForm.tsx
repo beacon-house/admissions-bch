@@ -117,18 +117,25 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     }
   };
 
+  // Determine if this is for Masters application
+  const isMastersApplication = defaultValues?.currentGrade === 'masters';
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       <div className="flex items-center space-x-2 mb-6">
         <Trophy className="w-6 h-6 text-primary" />
-        <h3 className="text-xl font-semibold text-primary">Academic & Investment Details</h3>
+        <h3 className="text-xl font-semibold text-primary">
+          {isMastersApplication ? "Masters Program Details" : "Academic & Investment Details"}
+        </h3>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label htmlFor="schoolName">School Name</Label>
+          <Label htmlFor="schoolName">
+            {isMastersApplication ? "Current/Previous University" : "School Name"}
+          </Label>
           <Input
-            placeholder="Enter your school name"
+            placeholder={isMastersApplication ? "Enter your university name" : "Enter your school name"}
             id="schoolName"
             {...register('schoolName')}
             className="h-12"
@@ -182,12 +189,35 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
 
         <div className="space-y-2">
           <Label>Target Geographies</Label>
-          <p className="text-sm text-gray-600 mb-2">Select your preferred destinations (includes typical budget ranges)</p>
+          <p className="text-sm text-gray-600 mb-2">
+            Select your preferred destinations {!isMastersApplication && "(includes typical budget ranges)"}
+          </p>
           {errors.preferredCountries && (
             <p className="text-sm text-red-500 mb-2">{errors.preferredCountries.message}</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {[
+            {isMastersApplication ? [
+              'USA',
+              'UK',
+              'Canada',
+              'Australia',
+              'Europe',
+              'Asia (Singapore, Hong Kong)',
+              'Middle East',
+              'Other Geographies',
+              'Need Guidance'
+            ].map((country) => (
+              <label key={country} className="flex items-start space-x-2 p-2 hover:bg-gray-50 rounded-lg transition-colors">
+                <input
+                  type="checkbox"
+                  {...register('preferredCountries')}
+                  value={country}
+                  defaultChecked={defaultValues?.preferredCountries?.includes(country)}
+                  className="rounded border-gray-300 text-primary focus:ring-primary mt-1"
+                />
+                <span className="text-sm leading-tight">{country}</span>
+              </label>
+            )) : [
               'USA (Rs. 1.6-2 Cr)',
               'UK (Rs. 1.2-1.6 Cr)',
               'Canada (Rs. 1.2-1.6 Cr)',

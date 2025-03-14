@@ -83,17 +83,10 @@ export function Header({ onEvaluation, showCTA = true }: HeaderProps) {
           <div className="flex items-center justify-between h-full">
             {/* Logo */}
             <Link to="/" className="flex-shrink-0">
-              {/* Mobile: Show favicon with proper spacing */}
               <img 
                 src="/bh ig logo.png"
                 alt="Beacon House"
-                className="h-10 w-auto sm:hidden"
-              />
-              {/* Tablet and up: Show full logo */}
-              <img
-                src="/bh ig logo.png"
-                alt="Beacon House"
-                className="hidden sm:block h-12 w-auto"
+                className="h-12 w-auto"
               />
             </Link>
 

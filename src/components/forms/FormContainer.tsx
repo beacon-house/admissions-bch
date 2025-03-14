@@ -39,8 +39,9 @@ export default function FormContainer() {
       });
       trackFormStepComplete(1);
       
-      // If user is applying for masters or grade 7 below, submit form immediately
-      if (data.currentGrade === 'masters' || data.currentGrade === '7_below') {
+      // If grade 7 or below, submit form immediately
+      // Masters applications proceed to step 2 like all others
+      if (data.currentGrade === '7_below') {
         setSubmitting(true);
         await submitFormData(data, 1, startTime);
         setSubmitting(false);
@@ -69,13 +70,15 @@ export default function FormContainer() {
       setSubmitting(true);
       
       const finalData = { ...formData, ...data };
-      const leadCategory = determineLeadCategory(
-        finalData.currentGrade,
-        finalData.formFillerType,
-        finalData.scholarshipRequirement,
-        finalData.curriculumType,
-        finalData.targetUniversityRank
-      );
+      const leadCategory = formData.currentGrade === 'masters' 
+        ? 'MASTERS' 
+        : determineLeadCategory(
+            finalData.currentGrade,
+            finalData.formFillerType,
+            finalData.scholarshipRequirement,
+            finalData.curriculumType,
+            finalData.targetUniversityRank
+          );
 
       // Update local state with all the data including lead category
       updateFormData({ 
@@ -101,7 +104,7 @@ export default function FormContainer() {
         return;
       }
       
-      // For all other categories, proceed to counseling step
+      // For all other categories (including MASTERS), proceed to counseling step
       setStep(3);
       trackFormStepComplete(2);
     } catch (error) {
@@ -181,7 +184,7 @@ export default function FormContainer() {
           Thank You for Your Interest
         </h3>
         <div className="max-w-lg text-gray-600">
-          <p>{(formData.currentGrade === 'masters' || formData.currentGrade === '7_below')
+          <p>{(formData.currentGrade === '7_below')
             ? "We appreciate you taking the time to share your profile with us. Our admissions team shall get in touch."
             : (formData.counselling?.selectedDate && formData.counselling?.selectedSlot)
               ? `We've scheduled your counselling session for ${formData.counselling.selectedDate} at ${formData.counselling.selectedSlot}. Our team will contact you soon to confirm.`
@@ -196,10 +199,14 @@ export default function FormContainer() {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="animate-pulse text-2xl font-semibold mb-4 text-primary">
-          Processing Your Application
+          {currentStep === 2 && formData.lead_category !== 'NURTURE' 
+            ? "Evaluating Your Profile" 
+            : "Processing Your Application"}
         </div>
         <p className="text-center text-gray-600 max-w-md">
-          Please wait while we securely submit your application...
+          {currentStep === 2 && formData.lead_category !== 'NURTURE'
+            ? "Please wait while we analyze your admissions potential..."
+            : "Please wait while we securely submit your application..."}
         </p>
       </div>
     );
@@ -207,14 +214,14 @@ export default function FormContainer() {
 
   return (
     <div id="qualification-form" className="animate-fade-in">
-      <div className="text-center mb-12">
-        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-4 whitespace-nowrap">
+      <div className="text-center mb-6">
+        <h2 className="text-3xl md:text-4xl font-bold text-primary mb-8">
           Transform Your Journey to Elite Universities
         </h2>
         <Progress value={getStepProgress()} className="mb-4" />
       </div>
 
-      <div className="space-y-8 bg-white rounded-xl shadow-xl p-8 border border-gray-100 max-w-4xl mx-auto">
+      <div className={`space-y-8 bg-white rounded-xl shadow-xl p-8 border border-gray-100 ${currentStep === 3 ? 'max-w-6xl' : 'max-w-4xl'} mx-auto`}>
         {currentStep === 1 && (
           <PersonalDetailsForm
             onSubmit={onSubmitStep1}
@@ -233,7 +240,6 @@ export default function FormContainer() {
         {currentStep === 3 && (
           <CounsellingForm
             onSubmit={onSubmitStep3}
-            onBack={() => setStep(2)}
             leadCategory={formData.lead_category}
           />
         )}
