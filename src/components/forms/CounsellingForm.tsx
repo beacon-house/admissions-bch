@@ -32,6 +32,7 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
   const [calendarDates, setCalendarDates] = useState<Date[]>([]);
+  const [allCalendarDates, setAllCalendarDates] = useState<Date[]>([]);
   
   const {
     handleSubmit,
@@ -42,16 +43,27 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     defaultValues: {}
   });
 
-  // Generate the 7-day calendar starting from today
+  // Generate the 7-day calendar starting from today, plus additional days (shown as locked)
   useEffect(() => {
     const today = new Date();
+    
+    // Next seven days (available)
     const nextSevenDays = Array.from({ length: 7 }, (_, i) => {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
       return date;
     });
     
+    // Additional days (shown as locked)
+    const additionalDays = Array.from({ length: 14 }, (_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i + 7);
+      return date;
+    });
+    
     setCalendarDates(nextSevenDays);
+    setAllCalendarDates([...nextSevenDays, ...additionalDays]);
+    
     // Default to selecting today
     setSelectedDate(today);
   }, []);
@@ -73,8 +85,15 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
   const timeSlots = getTimeSlots();
 
   const handleDateSelect = (date: Date) => {
-    setSelectedDate(date);
-    setSelectedTimeSlot(null); // Reset time slot when date changes
+    // Only allow selection of dates within the next 7 days
+    const today = new Date();
+    const maxSelectableDate = new Date(today);
+    maxSelectableDate.setDate(today.getDate() + 6);
+    
+    if (date <= maxSelectableDate) {
+      setSelectedDate(date);
+      setSelectedTimeSlot(null); // Reset time slot when date changes
+    }
   };
 
   const handleTimeSlotSelect = (slot: string) => {
@@ -112,6 +131,15 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     return date.getDate() === today.getDate() && 
            date.getMonth() === today.getMonth() && 
            date.getFullYear() === today.getFullYear();
+  };
+
+  // Check if a date is within the selectable range (next 7 days)
+  const isSelectable = (date: Date) => {
+    const today = new Date();
+    const maxSelectableDate = new Date(today);
+    maxSelectableDate.setDate(today.getDate() + 6);
+    
+    return date <= maxSelectableDate;
   };
 
   return (
@@ -205,8 +233,8 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
           </div>
         </div>
 
-        {/* Date Selection - Calendar Style */}
-        <div className="mb-6">
+        {/* Date Selection - Calendar Style with Improved Border */}
+        <div className="mb-6 border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
           <div className="flex items-center gap-2 mb-3">
             <Calendar className="h-5 w-5 text-primary" />
             <Label className="text-lg font-medium">Select a Date</Label>
@@ -223,23 +251,28 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
           
           <div className="grid grid-cols-7 gap-2">
             {/* Calculate starting position based on first day of week */}
-            {Array.from({ length: calendarDates[0]?.getDay() || 0 }, (_, i) => (
+            {Array.from({ length: allCalendarDates[0]?.getDay() || 0 }, (_, i) => (
               <div key={`empty-${i}`} className="h-14"></div>
             ))}
             
-            {/* Calendar days */}
-            {calendarDates.map((date, index) => {
+            {/* Calendar days - including both selectable and non-selectable days */}
+            {allCalendarDates.map((date, index) => {
               const { day, date: dateNum, month } = formatDateDisplay(date);
+              const canSelect = isSelectable(date);
+              
               return (
                 <button
                   key={index}
                   type="button"
-                  onClick={() => handleDateSelect(date)}
+                  onClick={() => canSelect && handleDateSelect(date)}
+                  disabled={!canSelect}
                   className={cn(
                     "h-14 rounded-lg flex flex-col items-center justify-center border-2 transition-all",
                     selectedDate && date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth()
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-gray-200 hover:border-gray-300",
+                      : canSelect
+                        ? "border-gray-200 hover:border-gray-300"
+                        : "border-gray-100 opacity-50 cursor-not-allowed",
                     isToday(date) && "ring-2 ring-accent/30"
                   )}
                 >
@@ -249,25 +282,12 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                 </button>
               );
             })}
-            
-            {/* Show future days as disabled */}
-            {Array.from({ length: 35 - (calendarDates.length + (calendarDates[0]?.getDay() || 0)) }, (_, i) => (
-              <button
-                key={`future-${i}`}
-                disabled
-                className="h-14 rounded-lg flex flex-col items-center justify-center border-2 border-gray-100 opacity-40"
-              >
-                <span className="text-xs font-semibold">-</span>
-                <span className="text-sm font-bold">-</span>
-                <span className="text-xs">-</span>
-              </button>
-            ))}
           </div>
         </div>
 
         {/* Time Slot Selection - Horizontal for Desktop, Vertical for Mobile */}
         {selectedDate && (
-          <div className="mb-8">
+          <div className="mb-8 border border-gray-200 rounded-xl p-6 bg-white shadow-sm">
             <div className="flex items-center gap-2 mb-3">
               <Clock className="h-5 w-5 text-primary" />
               <Label className="text-lg font-medium">
@@ -275,7 +295,7 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
               </Label>
             </div>
             
-            {/* Mobile: Vertical Layout */}
+            {/* Mobile: Vertical Layout with compact boxes */}
             <div className="md:hidden space-y-2">
               {timeSlots.map((slot, index) => (
                 <button
@@ -283,16 +303,16 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                   type="button"
                   onClick={() => handleTimeSlotSelect(slot)}
                   className={cn(
-                    "w-full py-3 px-4 rounded-lg border-2 text-left transition-colors flex justify-between items-center",
+                    "w-full py-2 px-3 rounded-lg border-2 transition-colors flex justify-center items-center",
                     selectedTimeSlot === slot
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-gray-200 hover:border-gray-300"
                   )}
                 >
-                  <span className="font-medium">{slot}</span>
+                  <span className="font-medium text-center">{slot}</span>
                   {selectedTimeSlot === slot && (
-                    <div className="bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
-                      Selected
+                    <div className="ml-2 bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                      ✓
                     </div>
                   )}
                 </button>
@@ -307,7 +327,7 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                   type="button"
                   onClick={() => handleTimeSlotSelect(slot)}
                   className={cn(
-                    "py-3 px-4 rounded-lg border-2 transition-colors flex items-center justify-between",
+                    "py-3 px-4 rounded-lg border-2 transition-colors flex items-center justify-center",
                     selectedTimeSlot === slot
                       ? "border-primary bg-primary/10 text-primary"
                       : "border-gray-200 hover:border-gray-300"

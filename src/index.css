@@ -54,6 +54,8 @@
     scroll-behavior: smooth;
     @apply antialiased;
     @apply overflow-x-hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
   }
   
   @font-face {
@@ -71,6 +73,7 @@
   body {
     @apply text-gray-900 font-body;
     @apply overflow-x-hidden;
+    font-size: 16px;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -85,6 +88,11 @@
   /* Dialog backdrop blur */
   [data-overlay-container="true"] {
     @apply backdrop-blur-sm;
+  }
+  
+  /* Ensure inputs have proper font size to prevent auto-zoom on mobile */
+  input, select, textarea {
+    font-size: 16px;
   }
 }
 
