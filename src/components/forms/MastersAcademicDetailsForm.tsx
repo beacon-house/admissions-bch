@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
-import { ChevronLeft, ChevronRight, Trophy, Building, Phone, MessageSquare, Mail } from 'lucide-react';
+import { ChevronLeft, ChevronRight, GraduationCap, Phone, MessageSquare, Mail } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Select,
@@ -14,14 +14,22 @@ import {
   SelectValue,
 } from '../ui/select';
 
-// Step 2: Academic Qualification Schema
-const academicDetailsSchema = z.object({
-  curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
-  schoolName: z.string().min(2, 'School name is required'),
-  academicPerformance: z.enum(['top_5', 'top_10', 'top_25', 'others']),
-  targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
-  preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
+// Masters Academic Details Schema
+const mastersAcademicDetailsSchema = z.object({
+  schoolName: z.string().min(2, 'University name is required'),
+  intake: z.enum(['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other']),
+  intakeOther: z.string().optional(),
+  graduationStatus: z.enum(['2025', '2026', '2027', 'others', 'graduated']),
+  graduationYear: z.string().min(1, 'Graduation year is required').optional().or(z.literal('')),
+  workExperience: z.enum(['0_years', '1_2_years', '3_5_years', '6_plus_years']),
+  gradeFormat: z.enum(['gpa', 'percentage']),
+  gpaValue: z.string().optional(),
+  percentageValue: z.string().optional(),
+  entranceExam: z.enum(['gre', 'gmat', 'planning', 'not_required']),
+  examScore: z.string().optional(),
+  fieldOfStudy: z.string().min(1, 'Field of study is required'),
   scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
+  preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   contactMethods: z.object({
     call: z.boolean().default(false),
     callNumber: z.string().optional(),
@@ -33,32 +41,48 @@ const academicDetailsSchema = z.object({
     message: "Please select at least one contact method",
     path: ['contact']
   }),
+}).refine(data => {
+  if (data.gradeFormat === 'gpa') {
+    return !!data.gpaValue;
+  } else if (data.gradeFormat === 'percentage') {
+    return !!data.percentageValue;
+  }
+  return true;
+}, {
+  message: "Please provide your grade in the selected format",
+  path: ['gpaValue'],
 });
 
-export type AcademicDetailsData = z.infer<typeof academicDetailsSchema>;
+export type MastersAcademicDetailsData = z.infer<typeof mastersAcademicDetailsSchema>;
 
-interface AcademicDetailsFormProps {
-  onSubmit: (data: AcademicDetailsData) => void;
+interface MastersAcademicDetailsFormProps {
+  onSubmit: (data: MastersAcademicDetailsData) => void;
   onBack: () => void;
-  defaultValues?: Partial<AcademicDetailsData>;
+  defaultValues?: Partial<MastersAcademicDetailsData>;
 }
 
-export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: AcademicDetailsFormProps) {
-  // Initialize state with values from previous form inputs where available
+export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: MastersAcademicDetailsFormProps) {
   const [callChecked, setCallChecked] = useState(defaultValues?.contactMethods?.call || false);
   const [whatsappChecked, setWhatsappChecked] = useState(defaultValues?.contactMethods?.whatsapp !== false); // Default to true unless explicitly false
   const [emailChecked, setEmailChecked] = useState(defaultValues?.contactMethods?.email !== false); // Default to true if not explicitly false
-  
+  const [showOtherIntake, setShowOtherIntake] = useState(defaultValues?.intake === 'other');
+  const [selectedEntranceExam, setSelectedEntranceExam] = useState(defaultValues?.entranceExam || 'not_required');
+  const [graduationStatus, setGraduationStatus] = useState(defaultValues?.graduationStatus || '2026');
+  const [gradeFormat, setGradeFormat] = useState(defaultValues?.gradeFormat || 'gpa');
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     setValue,
     getValues,
-  } = useForm<AcademicDetailsData>({
-    resolver: zodResolver(academicDetailsSchema),
+    watch,
+    clearErrors,
+  } = useForm<MastersAcademicDetailsData>({
+    resolver: zodResolver(mastersAcademicDetailsSchema),
     defaultValues: {
       ...defaultValues,
+      gradeFormat: defaultValues?.gradeFormat || 'gpa',
       contactMethods: {
         call: defaultValues?.contactMethods?.call || false,
         callNumber: defaultValues?.contactMethods?.callNumber || defaultValues?.phoneNumber || '',
@@ -69,6 +93,20 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
       }
     }
   });
+
+  // Watch for changes to key fields
+  const intake = watch('intake');
+  const entranceExam = watch('entranceExam');
+  const watchGraduationStatus = watch('graduationStatus');
+  const watchGradeFormat = watch('gradeFormat');
+
+  // Update states when values change
+  useEffect(() => {
+    setShowOtherIntake(intake === 'other');
+    setSelectedEntranceExam(entranceExam);
+    setGraduationStatus(watchGraduationStatus);
+    setGradeFormat(watchGradeFormat);
+  }, [intake, entranceExam, watchGraduationStatus, watchGradeFormat]);
 
   // Pre-fill contact methods with user data from step 1
   useEffect(() => {
@@ -123,7 +161,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     onBack();
   };
 
-  const handleFormSubmit = (data: AcademicDetailsData) => {
+  const handleFormSubmit = (data: MastersAcademicDetailsData) => {
     window.scrollTo(0, 0);
     onSubmit(data);
   };
@@ -131,40 +169,16 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="flex items-center space-x-2 mb-6">
-        <Trophy className="w-6 h-6 text-primary" />
-        <h3 className="text-xl font-semibold text-primary">
-          Academic & Investment Details
-        </h3>
+        <GraduationCap className="w-6 h-6 text-primary" />
+        <h3 className="text-xl font-semibold text-primary">Masters Program Details</h3>
       </div>
 
       <div className="space-y-6">
+        {/* University Name */}
         <div className="space-y-2">
-          <Label htmlFor="curriculumType">Curriculum Type</Label>
-          <Select 
-            onValueChange={(value) => setValue('curriculumType', value as AcademicDetailsData['curriculumType'])}
-            defaultValue={defaultValues?.curriculumType}
-          >
-            <SelectTrigger className="h-12 bg-white">
-              <SelectValue placeholder="Select curriculum" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="IB">IB</SelectItem>
-              <SelectItem value="IGCSE">IGCSE</SelectItem>
-              <SelectItem value="CBSE">CBSE</SelectItem>
-              <SelectItem value="ICSE">ICSE</SelectItem>
-              <SelectItem value="State_Boards">State Boards</SelectItem>
-              <SelectItem value="Others">Others</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.curriculumType && (
-            <p className="text-sm text-red-500">{errors.curriculumType.message}</p>
-          )}
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="schoolName">School Name</Label>
+          <Label htmlFor="schoolName">Current/Previous University</Label>
           <Input
-            placeholder="Enter your school name"
+            placeholder="Enter your university name"
             id="schoolName"
             {...register('schoolName')}
             className="h-12"
@@ -174,65 +188,102 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           )}
         </div>
 
+        {/* Graduation Year */}
         <div className="space-y-2">
-          <Label>Academic Performance</Label>
+          <Label>When do you expect to graduate?</Label>
           <Select 
-            onValueChange={(value) => setValue('academicPerformance', value as AcademicDetailsData['academicPerformance'])}
-            defaultValue={defaultValues?.academicPerformance}
+            onValueChange={(value) => setValue('graduationStatus', value as MastersAcademicDetailsData['graduationStatus'])}
+            defaultValue={defaultValues?.graduationStatus}
           >
             <SelectTrigger className="h-12 bg-white">
-              <SelectValue placeholder="Select your academic standing" />
+              <SelectValue placeholder="Select your expected graduation year" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="top_5">Top 5% of class</SelectItem>
-              <SelectItem value="top_10">Top 10% of class</SelectItem>
-              <SelectItem value="top_25">Top 25% of class</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2027">2027</SelectItem>
               <SelectItem value="others">Others</SelectItem>
+              <SelectItem value="graduated">Graduated Already</SelectItem>
             </SelectContent>
           </Select>
-          {errors.academicPerformance && (
-            <p className="text-sm text-red-500">{errors.academicPerformance.message}</p>
+          {errors.graduationStatus && (
+            <p className="text-sm text-red-500">{errors.graduationStatus.message}</p>
           )}
         </div>
 
+        {/* Intake */}
         <div className="space-y-2">
-          <Label>Target University Rank</Label>
+          <Label>Which intake are you applying for?</Label>
           <Select 
-            onValueChange={(value) => setValue('targetUniversityRank', value as AcademicDetailsData['targetUniversityRank'])}
-            defaultValue={defaultValues?.targetUniversityRank}
+            onValueChange={(value) => setValue('intake', value as MastersAcademicDetailsData['intake'])}
+            defaultValue={defaultValues?.intake}
           >
-            <SelectTrigger className="h-12 bg-white border-gray-200">
-              <SelectValue placeholder="Select target university rank" />
+            <SelectTrigger className="h-12 bg-white">
+              <SelectValue placeholder="Select intake" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="top_20">Top 20 Universities</SelectItem>
-              <SelectItem value="top_50">Top 50 Universities</SelectItem>
-              <SelectItem value="top_100">Top 100 Universities</SelectItem>
-              <SelectItem value="any_good">Any Good University</SelectItem>
+              <SelectItem value="aug_sept_2025">Aug/Sept 2025</SelectItem>
+              <SelectItem value="jan_2026">Jan 2026</SelectItem>
+              <SelectItem value="aug_sept_2026">Aug/Sept 2026</SelectItem>
+              <SelectItem value="other">Others</SelectItem>
             </SelectContent>
           </Select>
-          {errors.targetUniversityRank && (
-            <p className="text-sm text-red-500">{errors.targetUniversityRank.message}</p>
+          {errors.intake && (
+            <p className="text-sm text-red-500">{errors.intake.message}</p>
+          )}
+
+          {/* Other intake text field */}
+          {showOtherIntake && (
+            <div className="mt-2">
+              <Input
+                placeholder="Please specify your intake"
+                {...register('intakeOther')}
+                className="h-12"
+              />
+            </div>
           )}
         </div>
 
+        {/* Work Experience */}
+        <div className="space-y-2">
+          <Label>How many years of work experience do you have?</Label>
+          <Select 
+            onValueChange={(value) => setValue('workExperience', value as MastersAcademicDetailsData['workExperience'])}
+            defaultValue={defaultValues?.workExperience}
+          >
+            <SelectTrigger className="h-12 bg-white">
+              <SelectValue placeholder="Select work experience" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="0_years">0 years</SelectItem>
+              <SelectItem value="1_2_years">1-2 years</SelectItem>
+              <SelectItem value="3_5_years">3-5 years</SelectItem>
+              <SelectItem value="6_plus_years">6+ years</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.workExperience && (
+            <p className="text-sm text-red-500">{errors.workExperience.message}</p>
+          )}
+        </div>
+
+        {/* Target Geographies */}
         <div className="space-y-2">
           <Label>Target Geographies</Label>
           <p className="text-sm text-gray-600 mb-2">
-            Select your preferred destinations (includes typical budget ranges)
+            Select your preferred destinations
           </p>
           {errors.preferredCountries && (
             <p className="text-sm text-red-500 mb-2">{errors.preferredCountries.message}</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
-              'USA (Rs. 1.6-2 Cr)',
-              'UK (Rs. 1.2-1.6 Cr)',
-              'Canada (Rs. 1.2-1.6 Cr)',
-              'Australia (Rs. 1.2-1.6 Cr)',
-              'Europe (Rs. 1-1.5 Cr)',
-              'Asia (Singapore, Hong Kong) (Rs. 60L-1.5 Cr)',
-              'Middle East (Dubai) (Rs. 60L-1.5 Cr)',
+              'USA',
+              'UK',
+              'Canada',
+              'Australia',
+              'Europe',
+              'Asia (Singapore, Hong Kong)',
+              'Middle East',
               'Other Geographies',
               'Need Guidance'
             ].map((country) => (
@@ -250,6 +301,120 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           </div>
         </div>
 
+        {/* Academic Grade Format Selection */}
+        <div className="space-y-2">
+          <Label>What format would you like to provide your undergraduate grade in?</Label>
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'gpa');
+                clearErrors('gpaValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'gpa'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              GPA Format
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'percentage');
+                clearErrors('percentageValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'percentage'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              Percentage Format
+            </button>
+          </div>
+
+          {/* Show appropriate input field based on selected format */}
+          {gradeFormat === 'gpa' ? (
+            <div className="space-y-2">
+              <Label htmlFor="gpaValue">GPA (on a 10.0 scale)</Label>
+              <Input
+                placeholder="Enter your GPA (e.g., 8.2)"
+                id="gpaValue"
+                {...register('gpaValue')}
+                className="h-12"
+              />
+              {errors.gpaValue && (
+                <p className="text-sm text-red-500">{errors.gpaValue.message || "Please provide your GPA"}</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="percentageValue">Percentage</Label>
+              <Input
+                placeholder="Enter your percentage (e.g., 85%)"
+                id="percentageValue"
+                {...register('percentageValue')}
+                className="h-12"
+              />
+              {errors.percentageValue && (
+                <p className="text-sm text-red-500">{errors.percentageValue.message || "Please provide your percentage"}</p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Field of Study */}
+        <div className="space-y-2">
+          <Label htmlFor="fieldOfStudy">What is your intended field of study?</Label>
+          <Input
+            placeholder="E.g., Computer Science, Business Analytics, etc."
+            id="fieldOfStudy"
+            {...register('fieldOfStudy')}
+            className="h-12"
+          />
+          {errors.fieldOfStudy && (
+            <p className="text-sm text-red-500">{errors.fieldOfStudy.message}</p>
+          )}
+        </div>
+
+        {/* Entrance Exam */}
+        <div className="space-y-2">
+          <Label>Do you have a GRE/GMAT score (if required for your programs)?</Label>
+          <Select 
+            onValueChange={(value) => setValue('entranceExam', value as MastersAcademicDetailsData['entranceExam'])}
+            defaultValue={defaultValues?.entranceExam}
+          >
+            <SelectTrigger className="h-12 bg-white">
+              <SelectValue placeholder="Select exam status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="gre">Yes - GRE</SelectItem>
+              <SelectItem value="gmat">Yes - GMAT</SelectItem>
+              <SelectItem value="planning">No - but planning to take it</SelectItem>
+              <SelectItem value="not_required">Not required for my programs</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.entranceExam && (
+            <p className="text-sm text-red-500">{errors.entranceExam.message}</p>
+          )}
+
+          {/* Show score input if GRE or GMAT selected */}
+          {(selectedEntranceExam === 'gre' || selectedEntranceExam === 'gmat') && (
+            <div className="mt-2">
+              <Input
+                placeholder={selectedEntranceExam === 'gre' ? "GRE Score" : "GMAT Score"}
+                {...register('examScore')}
+                className="h-12"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Scholarship Requirement */}
         <div className="space-y-3">
           <Label>Level of scholarship needed<span className="text-red-500">*</span></Label>
           <p className="text-sm text-gray-600 mb-2">

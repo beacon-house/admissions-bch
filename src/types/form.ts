@@ -4,14 +4,19 @@ import { z } from 'zod';
 export const GRADE_LEVELS = ['7_below', '8', '9', '10', '11', '12', 'masters'] as const;
 export const CURRICULUM_TYPES = ['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others'] as const;
 export const ACADEMIC_PERFORMANCES = ['top_5', 'top_10', 'top_25', 'others'] as const;
-export const STUDY_PRIORITIES = ['main_focus', 'backup_plan', 'still_exploring'] as const;
-export const SCHOLARSHIP_REQUIREMENTS = ['good_to_have', 'must_have'] as const;
-export const TIMELINE_COMMITMENTS = ['immediate_start', 'within_3_months', 'still_exploring'] as const;
+export const SCHOLARSHIP_REQUIREMENTS = ['scholarship_optional', 'partial_scholarship', 'full_scholarship'] as const;
 export const FORM_FILLER_TYPES = ['parent', 'student'] as const;
 export const TARGET_UNIVERSITY_RANKS = ['top_20', 'top_50', 'top_100', 'any_good'] as const;
 
+// Masters-specific enums
+export const INTAKE_OPTIONS = ['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other'] as const;
+export const GRADUATION_STATUS_OPTIONS = ['2025', '2026', '2027', 'others', 'graduated'] as const;
+export const WORK_EXPERIENCE_OPTIONS = ['0_years', '1_2_years', '3_5_years', '6_plus_years'] as const;
+export const ENTRANCE_EXAM_OPTIONS = ['gre', 'gmat', 'planning', 'not_required'] as const;
+export const GRADE_FORMAT_OPTIONS = ['gpa', 'percentage'] as const;
+
 // Lead Categories
-export const LEAD_CATEGORIES = ['BCH', 'LUMINAIRE', 'NURTURE', 'MASTERS'] as const;
+export const LEAD_CATEGORIES = ['BCH', 'lum-l1', 'lum-l2', 'NURTURE', 'MASTERS'] as const;
 export type LeadCategory = typeof LEAD_CATEGORIES[number];
 
 // Base form interfaces
@@ -31,22 +36,54 @@ export interface BaseFormData {
   formFillerType: typeof FORM_FILLER_TYPES[number];
 }
 
-export interface AcademicFormData {
-  schoolName: string;
-  curriculumType: typeof CURRICULUM_TYPES[number];
-  academicPerformance: typeof ACADEMIC_PERFORMANCES[number];
-  studyAbroadPriority: typeof STUDY_PRIORITIES[number];
+export interface ContactMethods {
+  call: boolean;
+  callNumber?: string;
+  whatsapp: boolean;
+  whatsappNumber?: string;
+  email: boolean;
+  emailAddress?: string;
 }
 
-export interface CommitmentFormData {
-  preferredCountries: string[];
+export interface AcademicFormData {
+  curriculumType: typeof CURRICULUM_TYPES[number];
+  schoolName: string;
+  academicPerformance: typeof ACADEMIC_PERFORMANCES[number];
   targetUniversityRank: typeof TARGET_UNIVERSITY_RANKS[number];
+  preferredCountries: string[];
   scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
-  timelineCommitment: typeof TIMELINE_COMMITMENTS[number];
+  contactMethods: ContactMethods;
+}
+
+export interface MastersAcademicFormData {
+  schoolName: string;
+  intake: typeof INTAKE_OPTIONS[number];
+  intakeOther?: string;
+  graduationStatus: typeof GRADUATION_STATUS_OPTIONS[number];
+  graduationYear?: string;
+  workExperience: typeof WORK_EXPERIENCE_OPTIONS[number];
+  gradeFormat: typeof GRADE_FORMAT_OPTIONS[number];
+  gpaValue?: string;
+  percentageValue?: string;
+  entranceExam: typeof ENTRANCE_EXAM_OPTIONS[number];
+  examScore?: string;
+  fieldOfStudy: string;
+  scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
+  preferredCountries: string[];
+  contactMethods: ContactMethods;
+}
+
+export interface CounsellingFormData {
+  selectedDate?: string;
+  selectedSlot?: string;
 }
 
 // Combined form data type
-export type CompleteFormData = BaseFormData & AcademicFormData & CommitmentFormData;
+export type CompleteFormData = BaseFormData & 
+  (AcademicFormData | MastersAcademicFormData) & {
+    lead_category?: LeadCategory;
+    counselling?: CounsellingFormData;
+  };
 
 // Form submission response
 export interface FormSubmissionResponse {

@@ -1,5 +1,5 @@
 import { LeadCategory, CompleteFormData } from '@/types/form';
-import { personalDetailsSchema, academicDetailsSchema, commitmentSchema } from '@/schemas/form';
+import { personalDetailsSchema, academicDetailsSchema } from '@/schemas/form';
 import { ZodError } from 'zod';
 
 export class FormValidationError extends Error {
@@ -8,6 +8,16 @@ export class FormValidationError extends Error {
     this.name = 'FormValidationError';
   }
 }
+
+// Function to map new scholarship requirements to old format for backwards compatibility
+const mapScholarshipRequirement = (value: string): string => {
+  if (value === 'full_scholarship') {
+    return 'must_have';
+  } else {
+    // Both 'partial_scholarship' and 'scholarship_optional' map to 'good_to_have'
+    return 'good_to_have';
+  }
+};
 
 // Form submission helper
 export const submitFormData = async (
@@ -23,33 +33,95 @@ export const submitFormData = async (
 
   const currentTime = Math.floor((Date.now() - startTime) / 1000);
 
-  // Format source with current month and year
-  const date = new Date();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const year = date.getFullYear();
-  const source = `website_${month}${year}`;
+  // Parse counselling data for webhook
+  const counsellingSlotPicked = Boolean(
+    data.counselling?.selectedDate && data.counselling?.selectedSlot
+  );
+  
+  // Get preferred communication methods
+  const preferredContactMethods = [];
+  const contactDetails = {};
+  
+  if (data.contactMethods) {
+    if (data.contactMethods.call) {
+      preferredContactMethods.push('call');
+      contactDetails.callNumber = data.contactMethods.callNumber || data.phoneNumber;
+    }
+    
+    if (data.contactMethods.whatsapp) {
+      preferredContactMethods.push('whatsapp');
+      contactDetails.whatsappNumber = data.contactMethods.whatsappNumber || data.phoneNumber;
+    }
+    
+    if (data.contactMethods.email) {
+      preferredContactMethods.push('email');
+      contactDetails.emailAddress = data.contactMethods.emailAddress || data.email;
+    }
+  }
 
-  const basePayload = {
-    ...data,
-    source,
-    completion_status: isComplete ? 'complete' : 'partial',
-    current_step: step,
+  // Map the scholarship requirement to the old format for backwards compatibility
+  let scholarshipRequirement = data.scholarshipRequirement;
+  if (scholarshipRequirement) {
+    scholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
+  }
+
+  // Create a clean payload with just the data we need
+  const formattedPayload: Record<string, any> = {
+    // User-submitted data
+    studentFirstName: data.studentFirstName,
+    studentLastName: data.studentLastName,
+    parentName: data.parentName,
+    email: data.email,
+    phoneNumber: data.phoneNumber,
+    whatsappConsent: data.whatsappConsent,
+    currentGrade: data.currentGrade,
+    formFillerType: data.formFillerType,
+    curriculumType: data.curriculumType,
+    
+    // Additional form fields if available
+    schoolName: data.schoolName,
+    academicPerformance: data.academicPerformance,
+    targetUniversityRank: data.targetUniversityRank,
+    preferredCountries: data.preferredCountries,
+    
+    // Use mapped scholarship requirement value
+    scholarshipRequirement,
+    
+    // Include original scholarship requirement for reference
+    originalScholarshipRequirement: data.scholarshipRequirement,
+    
+    // Masters-specific fields
+    ...(data.currentGrade === 'masters' && {
+      intake: data.intake,
+      intakeOther: data.intakeOther,
+      graduationStatus: data.graduationStatus,
+      graduationYear: data.graduationYear,
+      workExperience: data.workExperience,
+      fieldOfStudy: data.fieldOfStudy,
+      gradeFormat: data.gradeFormat,
+      gpaValue: data.gpaValue,
+      percentageValue: data.percentageValue,
+      entranceExam: data.entranceExam,
+      examScore: data.examScore
+    }),
+    
+    // Lead categorization
+    lead_category: data.lead_category,
+    
+    // Counselling data
+    counsellingSlotPicked: counsellingSlotPicked,
+    counsellingDate: data.counselling?.selectedDate || null,
+    counsellingTime: data.counselling?.selectedSlot || null,
+    preferredContactMethods: preferredContactMethods.length > 0 ? preferredContactMethods : null,
+    ...contactDetails,
+    
+    // Metadata
     total_time_spent: currentTime,
-  };
-
-  // Add step-specific completion times
-  const timePayload = {
-    ...(step >= 1 && { step1_completion_time: Math.floor(currentTime * 0.3) }),
-    ...(step >= 2 && { step2_completion_time: Math.floor(currentTime * 0.3) }),
-    ...(step === 3 && { step3_completion_time: Math.floor(currentTime * 0.4) }),
-  };
-
-  // Ensure all data is properly formatted
-  const formattedPayload = {
-    ...basePayload,
-    ...timePayload,
     created_at: new Date().toISOString(),
+    step_completed: step
   };
+
+  console.log('Sending webhook data:', formattedPayload);
 
   const response = await fetch(webhookUrl, {
     method: 'POST',
@@ -86,9 +158,6 @@ export const validateForm = async (
       case 2:
         await academicDetailsSchema.parseAsync(data);
         break;
-      case 3:
-        await commitmentSchema.parseAsync(data);
-        break;
       default:
         throw new Error('Invalid form step');
     }
@@ -119,8 +188,6 @@ export const validateFormStep = (
         return personalDetailsSchema.safeParse(data).success;
       case 2:
         return academicDetailsSchema.safeParse(data).success;
-      case 3:
-        return commitmentSchema.safeParse(data).success;
       default:
         return false;
     }

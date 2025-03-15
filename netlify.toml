@@ -1,5 +1,19 @@
 # Netlify configuration file
 
+# Handle application form redirects
+[[redirects]]
+  from = "/qualification-form"
+  to = "/application-form"
+  status = 301
+  force = true
+
+# Handle questionnaire redirects (legacy path)
+[[redirects]]
+  from = "/questionnaire"
+  to = "/application-form"
+  status = 301
+  force = true
+
 # Handle client-side routing
 [[redirects]]
   from = "/*"
