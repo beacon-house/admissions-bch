@@ -4,13 +4,13 @@ import { z } from 'zod';
 export const GRADE_LEVELS = ['7_below', '8', '9', '10', '11', '12', 'masters'] as const;
 export const CURRICULUM_TYPES = ['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others'] as const;
 export const ACADEMIC_PERFORMANCES = ['top_5', 'top_10', 'top_25', 'others'] as const;
-export const SCHOLARSHIP_REQUIREMENTS = ['good_to_have', 'must_have'] as const;
+export const SCHOLARSHIP_REQUIREMENTS = ['scholarship_optional', 'partial_scholarship', 'full_scholarship'] as const;
 export const FORM_FILLER_TYPES = ['parent', 'student'] as const;
 export const TARGET_UNIVERSITY_RANKS = ['top_20', 'top_50', 'top_100', 'any_good'] as const;
 
 // Masters-specific enums
-export const INTAKE_OPTIONS = ['sept_2026', 'jan_2026', 'sept_2025', 'other'] as const;
-export const GRADUATION_STATUS_OPTIONS = ['final_year', 'graduated', 'not_eligible'] as const;
+export const INTAKE_OPTIONS = ['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other'] as const;
+export const GRADUATION_STATUS_OPTIONS = ['2025', '2026', '2027', 'others', 'graduated'] as const;
 export const WORK_EXPERIENCE_OPTIONS = ['0_years', '1_2_years', '3_5_years', '6_plus_years'] as const;
 export const ENTRANCE_EXAM_OPTIONS = ['gre', 'gmat', 'planning', 'not_required'] as const;
 export const GRADE_FORMAT_OPTIONS = ['gpa', 'percentage'] as const;

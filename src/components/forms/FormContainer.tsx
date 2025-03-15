@@ -108,10 +108,6 @@ export default function FormContainer() {
         }
       });
       
-      // Shrink the form before showing evaluation animation
-      window.scrollTo(0, 0);
-      setCompactForm(true);
-      
       // Different flows based on lead category
       if (leadCategory === 'NURTURE') {
         // For NURTURE leads, submit directly
@@ -121,23 +117,12 @@ export default function FormContainer() {
         setSubmitted(true);
       } else {
         // For non-NURTURE leads, show evaluation animation
+        window.scrollTo(0, 0);
+        setSubmitting(true);
+        setShowEvaluationAnimation(true);
         setTimeout(() => {
-          setSubmitting(true);
-          setShowEvaluationAnimation(true);
-          
-          // Submit data in background
-          submitFormData(
-            { ...finalData, lead_category: leadCategory }, 
-            2, 
-            startTime,
-            false
-          ).then(() => {
-            // We continue regardless as the animation will handle the transition
-          }).catch(error => {
-            console.error('Error submitting form in background:', error);
-            // Even if there's an error, we still allow the animation to complete
-          });
-        }, 300); // Small delay to ensure form shrinking animation completes
+          handleEvaluationComplete();
+        }, 10000); // 10 seconds for evaluation animation
       }
     } catch (error) {
       if (error instanceof FormValidationError) {
@@ -175,8 +160,9 @@ export default function FormContainer() {
         }
       });
       
-      // We don't need to submit all the data again since we already captured it in step 2
-      // Just marking the form as submitted
+      // Submit all form data including counselling details
+      await submitFormData(finalData, 3, startTime, true);
+      
       setSubmitting(false);
       setSubmitted(true);
     } catch (error) {
@@ -278,23 +264,19 @@ export default function FormContainer() {
         <Progress value={getStepProgress()} className="mb-4" />
       </div>
 
-      <div 
-        ref={containerRef}
-        className={`relative space-y-8 transition-all duration-300 ease-in-out mx-auto px-4 sm:px-8 md:px-12 ${currentStep === 3 ? 'max-w-full' : 'max-w-full md:max-w-4xl'} 
-          ${compactForm ? 'max-h-[40vh] overflow-hidden opacity-30' : ''}`}
-      >
-        {/* Loading animation overlay - positioned in the center of the viewport */}
-        {showEvaluationAnimation && (
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-white/90">
-            <SequentialLoadingAnimation
-              steps={evaluationSteps}
-              onComplete={handleEvaluationComplete}
-              className="z-20"
-            />
-          </div>
-        )}
-        
-        <div className={showEvaluationAnimation ? 'pointer-events-none' : ''}>
+      {/* Loading animation */}
+      {showEvaluationAnimation && (
+        <SequentialLoadingAnimation
+          steps={evaluationSteps}
+          onComplete={handleEvaluationComplete}
+        />
+      )}
+      
+      {!showEvaluationAnimation && (
+        <div 
+          ref={containerRef}
+          className={`relative space-y-8 transition-all duration-300 ease-in-out mx-auto px-4 sm:px-8 md:px-12 ${currentStep === 3 ? 'max-w-full' : 'max-w-full md:max-w-4xl'}`}
+        >
           {currentStep === 1 && (
             <PersonalDetailsForm
               onSubmit={onSubmitStep1}
@@ -325,7 +307,7 @@ export default function FormContainer() {
             />
           )}
         </div>
-      </div>
+      )}
     </div>
   );
 }

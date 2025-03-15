@@ -17,9 +17,9 @@ import {
 // Masters Academic Details Schema
 const mastersAcademicDetailsSchema = z.object({
   schoolName: z.string().min(2, 'University name is required'),
-  intake: z.enum(['sept_2026', 'jan_2026', 'sept_2025', 'other']),
+  intake: z.enum(['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other']),
   intakeOther: z.string().optional(),
-  graduationStatus: z.enum(['final_year', 'graduated', 'not_eligible']),
+  graduationStatus: z.enum(['2025', '2026', '2027', 'others', 'graduated']),
   graduationYear: z.string().min(1, 'Graduation year is required').optional().or(z.literal('')),
   workExperience: z.enum(['0_years', '1_2_years', '3_5_years', '6_plus_years']),
   gradeFormat: z.enum(['gpa', 'percentage']),
@@ -28,7 +28,7 @@ const mastersAcademicDetailsSchema = z.object({
   entranceExam: z.enum(['gre', 'gmat', 'planning', 'not_required']),
   examScore: z.string().optional(),
   fieldOfStudy: z.string().min(1, 'Field of study is required'),
-  scholarshipRequirement: z.enum(['good_to_have', 'must_have']),
+  scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
   preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   contactMethods: z.object({
     call: z.boolean().default(false),
@@ -67,7 +67,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
   const [emailChecked, setEmailChecked] = useState(defaultValues?.contactMethods?.email !== false); // Default to true if not explicitly false
   const [showOtherIntake, setShowOtherIntake] = useState(defaultValues?.intake === 'other');
   const [selectedEntranceExam, setSelectedEntranceExam] = useState(defaultValues?.entranceExam || 'not_required');
-  const [graduationStatus, setGraduationStatus] = useState(defaultValues?.graduationStatus || 'final_year');
+  const [graduationStatus, setGraduationStatus] = useState(defaultValues?.graduationStatus || '2026');
   const [gradeFormat, setGradeFormat] = useState(defaultValues?.gradeFormat || 'gpa');
 
   const {
@@ -156,13 +156,6 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
     }
   };
 
-  // Generate year options
-  const currentYear = new Date().getFullYear();
-  const yearOptions = [];
-  for (let i = currentYear - 5; i <= currentYear + 6; i++) {
-    yearOptions.push(i.toString());
-  }
-
   const handleBack = () => {
     window.scrollTo(0, 0);
     onBack();
@@ -195,49 +188,28 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
           )}
         </div>
 
-        {/* Graduation Status */}
+        {/* Graduation Year */}
         <div className="space-y-2">
-          <Label>Are you currently in your final year of undergraduate studies or have already graduated?</Label>
+          <Label>When do you expect to graduate?</Label>
           <Select 
             onValueChange={(value) => setValue('graduationStatus', value as MastersAcademicDetailsData['graduationStatus'])}
             defaultValue={defaultValues?.graduationStatus}
           >
             <SelectTrigger className="h-12 bg-white">
-              <SelectValue placeholder="Select graduation status" />
+              <SelectValue placeholder="Select your expected graduation year" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="final_year">Yes - final year</SelectItem>
-              <SelectItem value="graduated">Yes - graduated</SelectItem>
-              <SelectItem value="not_eligible">No (not eligible)</SelectItem>
+              <SelectItem value="2025">2025</SelectItem>
+              <SelectItem value="2026">2026</SelectItem>
+              <SelectItem value="2027">2027</SelectItem>
+              <SelectItem value="others">Others</SelectItem>
+              <SelectItem value="graduated">Graduated Already</SelectItem>
             </SelectContent>
           </Select>
           {errors.graduationStatus && (
             <p className="text-sm text-red-500">{errors.graduationStatus.message}</p>
           )}
         </div>
-
-        {/* Graduation Year - Only show if not graduated */}
-        {graduationStatus === 'final_year' && (
-          <div className="space-y-2">
-            <Label htmlFor="graduationYear">When do you graduate?</Label>
-            <Select 
-              onValueChange={(value) => setValue('graduationYear', value)}
-              defaultValue={defaultValues?.graduationYear}
-            >
-              <SelectTrigger className="h-12 bg-white">
-                <SelectValue placeholder="Select graduation year" />
-              </SelectTrigger>
-              <SelectContent>
-                {yearOptions.map(year => (
-                  <SelectItem key={year} value={year}>{year}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.graduationYear && (
-              <p className="text-sm text-red-500">{errors.graduationYear.message}</p>
-            )}
-          </div>
-        )}
 
         {/* Intake */}
         <div className="space-y-2">
@@ -250,10 +222,10 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <SelectValue placeholder="Select intake" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="sept_2026">September 2026</SelectItem>
-              <SelectItem value="jan_2026">January 2026</SelectItem>
-              <SelectItem value="sept_2025">September 2025</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="aug_sept_2025">Aug/Sept 2025</SelectItem>
+              <SelectItem value="jan_2026">Jan 2026</SelectItem>
+              <SelectItem value="aug_sept_2026">Aug/Sept 2026</SelectItem>
+              <SelectItem value="other">Others</SelectItem>
             </SelectContent>
           </Select>
           {errors.intake && (
@@ -368,9 +340,9 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
           {/* Show appropriate input field based on selected format */}
           {gradeFormat === 'gpa' ? (
             <div className="space-y-2">
-              <Label htmlFor="gpaValue">GPA (on a 4.0 scale)</Label>
+              <Label htmlFor="gpaValue">GPA (on a 10.0 scale)</Label>
               <Input
-                placeholder="Enter your GPA (e.g., 3.8)"
+                placeholder="Enter your GPA (e.g., 8.2)"
                 id="gpaValue"
                 {...register('gpaValue')}
                 className="h-12"
@@ -443,20 +415,53 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
         </div>
 
         {/* Scholarship Requirement */}
-        <div className="space-y-2">
-          <Label>Scholarship Requirement</Label>
-          <Select 
-            onValueChange={(value) => setValue('scholarshipRequirement', value as MastersAcademicDetailsData['scholarshipRequirement'])}
-            defaultValue={defaultValues?.scholarshipRequirement}
-          >
-            <SelectTrigger className="h-12 bg-white border-gray-200">
-              <SelectValue placeholder="Select scholarship requirement" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="good_to_have">Good to have</SelectItem>
-              <SelectItem value="must_have">Must-have</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-3">
+          <Label>Level of scholarship needed<span className="text-red-500">*</span></Label>
+          <p className="text-sm text-gray-600 mb-2">
+            Please select your scholarship requirements:
+          </p>
+          
+          <div className="space-y-3">
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="full_scholarship"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Full scholarship needed</span>
+                <p className="text-sm text-gray-600">I require 100% financial assistance to pursue my studies</p>
+              </div>
+            </label>
+            
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="partial_scholarship"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Partial scholarship needed</span>
+                <p className="text-sm text-gray-600">I can cover some costs but require partial financial support</p>
+              </div>
+            </label>
+            
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="scholarship_optional"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Scholarship optional</span>
+                <p className="text-sm text-gray-600">I can pursue my studies without scholarship support</p>
+              </div>
+            </label>
+          </div>
+          
           {errors.scholarshipRequirement && (
             <p className="text-sm text-red-500">{errors.scholarshipRequirement.message}</p>
           )}

@@ -9,6 +9,16 @@ export class FormValidationError extends Error {
   }
 }
 
+// Function to map new scholarship requirements to old format for backwards compatibility
+const mapScholarshipRequirement = (value: string): string => {
+  if (value === 'full_scholarship') {
+    return 'must_have';
+  } else {
+    // Both 'partial_scholarship' and 'scholarship_optional' map to 'good_to_have'
+    return 'good_to_have';
+  }
+};
+
 // Form submission helper
 export const submitFormData = async (
   data: Partial<CompleteFormData>,
@@ -49,6 +59,12 @@ export const submitFormData = async (
     }
   }
 
+  // Map the scholarship requirement to the old format for backwards compatibility
+  let scholarshipRequirement = data.scholarshipRequirement;
+  if (scholarshipRequirement) {
+    scholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
+  }
+
   // Create a clean payload with just the data we need
   const formattedPayload: Record<string, any> = {
     // User-submitted data
@@ -67,7 +83,12 @@ export const submitFormData = async (
     academicPerformance: data.academicPerformance,
     targetUniversityRank: data.targetUniversityRank,
     preferredCountries: data.preferredCountries,
-    scholarshipRequirement: data.scholarshipRequirement,
+    
+    // Use mapped scholarship requirement value
+    scholarshipRequirement,
+    
+    // Include original scholarship requirement for reference
+    originalScholarshipRequirement: data.scholarshipRequirement,
     
     // Masters-specific fields
     ...(data.currentGrade === 'masters' && {
@@ -96,7 +117,8 @@ export const submitFormData = async (
     
     // Metadata
     total_time_spent: currentTime,
-    created_at: new Date().toISOString()
+    created_at: new Date().toISOString(),
+    step_completed: step
   };
 
   console.log('Sending webhook data:', formattedPayload);

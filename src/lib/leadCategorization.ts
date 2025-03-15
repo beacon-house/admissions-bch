@@ -1,6 +1,18 @@
 import { LeadCategory } from '@/types/form';
 
 /**
+ * Maps the new scholarship requirement values to the old ones for categorization logic
+ */
+const mapScholarshipRequirement = (scholarshipRequirement: string): 'must_have' | 'good_to_have' => {
+  if (scholarshipRequirement === 'full_scholarship') {
+    return 'must_have';
+  } else {
+    // Both 'partial_scholarship' and 'scholarship_optional' map to 'good_to_have'
+    return 'good_to_have';
+  }
+};
+
+/**
  * Determines the lead category based on updated categorization logic
  * 
  * Categories:
@@ -17,6 +29,9 @@ export const determineLeadCategory = (
   curriculumType: string,
   targetUniversityRank?: string
 ): LeadCategory => {
+  // Map the new scholarship requirement format to the old one for compatibility
+  const mappedScholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
+  
   // MASTERS category - Always takes precedence
   if (currentGrade === 'masters') {
     return 'MASTERS';
@@ -27,7 +42,7 @@ export const determineLeadCategory = (
   if (
     ['9', '10'].includes(currentGrade) &&
     formFillerType === 'parent' &&
-    scholarshipRequirement === 'good_to_have'
+    mappedScholarshipRequirement === 'good_to_have'
   ) {
     return 'BCH';
   }
@@ -35,7 +50,7 @@ export const determineLeadCategory = (
   // Case 2: Grade 11, good-to-have scholarship, top-20 target
   if (
     currentGrade === '11' &&
-    scholarshipRequirement === 'good_to_have' &&
+    mappedScholarshipRequirement === 'good_to_have' &&
     targetUniversityRank === 'top_20' &&
     (
       formFillerType === 'parent' || 
@@ -49,7 +64,7 @@ export const determineLeadCategory = (
   // Case 1: Grade 11, good-to-have scholarship, not top-20 target
   if (
     currentGrade === '11' &&
-    scholarshipRequirement === 'good_to_have' &&
+    mappedScholarshipRequirement === 'good_to_have' &&
     targetUniversityRank !== 'top_20' &&
     (
       formFillerType === 'parent' || 
@@ -62,7 +77,7 @@ export const determineLeadCategory = (
   // Case 2: Grade 12, good-to-have scholarship
   if (
     currentGrade === '12' &&
-    scholarshipRequirement === 'good_to_have' &&
+    mappedScholarshipRequirement === 'good_to_have' &&
     (
       formFillerType === 'parent' || 
       (formFillerType === 'student' && ['IB', 'IGCSE'].includes(curriculumType))
@@ -76,7 +91,7 @@ export const determineLeadCategory = (
   if (
     ['11', '12'].includes(currentGrade) &&
     formFillerType === 'parent' &&
-    scholarshipRequirement === 'must_have'
+    mappedScholarshipRequirement === 'must_have'
   ) {
     return 'lum-l2';
   }

@@ -1,10 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Calendar, Award, Clock, User } from 'lucide-react';
+import { Calendar, Award, ChevronRight, Clock, Linkedin } from 'lucide-react';
 import { Label } from '../ui/label';
 import { LeadCategory } from '@/types/form';
+import { cn } from '@/lib/utils';
 
 // Step 3: Counselling Booking Schema
 const counsellingSchema = z.object({
@@ -20,63 +21,101 @@ interface CounsellingFormProps {
 }
 
 export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps) {
-  // Determine which calendar to show based on lead category
+  // Determine which counselor to show based on lead category
   const isBCH = leadCategory === 'BCH';
-  const calendarRef = useRef<HTMLIFrameElement>(null);
+  const counselorName = isBCH ? "Viswanathan" : "Karthik Lakshman";
+  const counselorImage = isBCH ? "/vishy.png" : "/karthik.png";
+  const linkedinUrl = isBCH 
+    ? "https://www.linkedin.com/in/viswanathan-r-8504182/" 
+    : "https://www.linkedin.com/in/karthiklakshman/";
+  
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
+  const [calendarDates, setCalendarDates] = useState<Date[]>([]);
   
   const {
     handleSubmit,
     setValue,
+    formState: { isSubmitting }
   } = useForm<CounsellingData>({
     resolver: zodResolver(counsellingSchema),
     defaultValues: {}
   });
 
-  // Ensure we scroll to the top when this form loads
+  // Generate the 7-day calendar starting from today
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const today = new Date();
+    const nextSevenDays = Array.from({ length: 7 }, (_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      return date;
+    });
     
-    // Set up a message listener to detect calendar booking completion
-    const handleCalendarMessage = (event: MessageEvent) => {
-      // This is a simplified implementation - in a real-world scenario, you'd want to
-      // validate the origin and add more sophisticated parsing of the message
-      if (event.data && typeof event.data === 'string' && event.data.includes('appointment-scheduled')) {
-        // Extract appointment details from the message - this would need to be
-        // customized based on the actual format of the message from Google Calendar
-        try {
-          // This is a placeholder for parsing the message
-          // In reality, you would need to adapt this to the actual message format
-          const appointmentData = JSON.parse(event.data.split('appointment-scheduled:')[1]);
-          setValue('selectedDate', appointmentData.date || new Date().toLocaleDateString());
-          setValue('selectedSlot', appointmentData.time || '12:00 PM');
-          
-          // Submit the form automatically
-          setTimeout(() => {
-            onSubmit({
-              selectedDate: appointmentData.date || new Date().toLocaleDateString(),
-              selectedSlot: appointmentData.time || '12:00 PM'
-            });
-          }, 1000);
-        } catch (error) {
-          console.error('Error parsing calendar message:', error);
-          // Even if parsing fails, try to submit the form with placeholder data
-          onSubmit({
-            selectedDate: new Date().toLocaleDateString(),
-            selectedSlot: '12:00 PM'
-          });
-        }
+    setCalendarDates(nextSevenDays);
+    // Default to selecting today
+    setSelectedDate(today);
+  }, []);
+
+  // Generate available time slots (10 AM to 8 PM, except 2-3 PM)
+  const getTimeSlots = () => {
+    const slots = [];
+    for (let hour = 10; hour <= 20; hour++) {
+      // Skip the 2 PM slot (blackout period)
+      if (hour !== 14) {
+        // Special case for 12 PM (noon)
+        const formattedHour = hour === 12 ? "12 PM" : (hour > 12 ? `${hour - 12} PM` : `${hour} AM`);
+        slots.push(formattedHour);
       }
+    }
+    return slots;
+  };
+
+  const timeSlots = getTimeSlots();
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    setSelectedTimeSlot(null); // Reset time slot when date changes
+  };
+
+  const handleTimeSlotSelect = (slot: string) => {
+    setSelectedTimeSlot(slot);
+    // Format the date for submission
+    if (selectedDate) {
+      const formattedDate = selectedDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      setValue('selectedDate', formattedDate);
+      setValue('selectedSlot', slot);
+    }
+  };
+
+  const handleFormSubmit = (data: CounsellingData) => {
+    window.scrollTo(0, 0);
+    onSubmit(data);
+  };
+
+  // Format date for display
+  const formatDateDisplay = (date: Date) => {
+    return {
+      day: date.toLocaleDateString('en-US', { weekday: 'short' }),
+      date: date.getDate(),
+      month: date.toLocaleDateString('en-US', { month: 'short' })
     };
-    
-    window.addEventListener('message', handleCalendarMessage);
-    
-    return () => {
-      window.removeEventListener('message', handleCalendarMessage);
-    };
-  }, [onSubmit, setValue]);
+  };
+
+  // Check if a date is today
+  const isToday = (date: Date) => {
+    const today = new Date();
+    return date.getDate() === today.getDate() && 
+           date.getMonth() === today.getMonth() && 
+           date.getFullYear() === today.getFullYear();
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="mb-6">
         <div className="flex items-center space-x-2 mb-4">
           <Calendar className="w-6 h-6 text-primary" />
@@ -89,122 +128,234 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
         </p>
       </div>
 
-      {/* Two-column layout for desktop, vertical for mobile */}
-      <div className="grid grid-cols-1 md:grid-cols-10 gap-6 mb-6">
-        {/* Founder Profile Section - 40% width on desktop */}
-        <div className="bg-gray-50 rounded-xl p-4 h-full flex flex-col md:col-span-4">
-          <h4 className="text-lg font-semibold text-primary mb-4 flex items-center">
-            <User className="w-5 h-5 mr-2 text-accent" />
-            Your Session With
-          </h4>
-          
-          <div className="flex flex-col gap-4 items-center flex-grow">
-            <div className="w-28 h-28 rounded-full overflow-hidden shrink-0 border-4 border-accent shadow-lg">
+      <form onSubmit={handleSubmit(handleFormSubmit)}>
+        {/* Enhanced Counselor Profile Card */}
+        <div className="bg-gradient-to-r from-primary/5 to-primary/10 rounded-xl p-6 mb-8 shadow-md border border-primary/10">
+          <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
+            <div className="relative">
               <img 
-                src={isBCH ? "/vishy.png" : "/karthik.png"} 
-                alt={isBCH ? "Viswanathan" : "Karthik"}
-                className="w-full h-full object-cover"
+                src={counselorImage} 
+                alt={counselorName} 
+                className="w-32 h-32 rounded-full object-cover border-4 border-white shadow-lg"
               />
+              <div className="absolute -bottom-2 -right-2 bg-accent text-primary p-1 rounded-full shadow-sm">
+                <Award className="w-5 h-5" />
+              </div>
             </div>
             
-            <div className="text-center">
-              <h5 className="text-xl font-semibold mb-2">
-                {isBCH ? "Viswanathan" : "Karthik Lakshman"}
-              </h5>
-              <div className="inline-block bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-medium mb-3">
-                Managing Director, Beacon House
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="text-xl font-bold text-primary">
+                  Your Session With {counselorName}
+                </h4>
+                <a 
+                  href={linkedinUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 flex items-center gap-1 text-sm"
+                >
+                  <Linkedin className="w-4 h-4" />
+                  <span>LinkedIn</span>
+                </a>
               </div>
               
-              <div className="text-sm text-gray-700 leading-relaxed max-h-36 overflow-y-auto pr-2">
+              <div className="text-gray-700 mb-4">
                 {isBCH ? (
-                  <p>
-                    Vishy has degrees from IIT-BHU and IIM Kozhikode. He led Tutorvista Global's expansion to 36 K-12 schools and founded Magic Crate (acquired by Byju's). At Byju's, he served as Chief Product Officer and ran the online tuitions business.
-                  </p>
+                  <>
+                    <p className="mb-2 leading-relaxed">
+                      Vishy holds degrees from <span className="font-medium">IIT-BHU and IIM Kozhikode</span>. He founded Magic Crate, which was acquired by Byju's where he served as <span className="font-medium">Chief Product Officer</span> and managed their online tuitions business.
+                    </p>
+                    <p className="leading-relaxed">
+                      With extensive experience in education technology and business development, Vishy has successfully mentored hundreds of students who gained admission to top universities worldwide.
+                    </p>
+                  </>
                 ) : (
-                  <p>
-                    Karthik earned his Masters from Georgia Tech and worked with Coke and McKinsey in the US. He founded Magic Crate (acquired by Byju's) and later led Byju's Test Prep division as P&L head. His elite university experience drives his passion to help Indian students achieve global success.
-                  </p>
+                  <>
+                    <p className="mb-2 leading-relaxed">
+                      Karthik earned his Masters from <span className="font-medium">Georgia Tech</span> and worked with <span className="font-medium">Coke and McKinsey</span> in the US. He founded Magic Crate (acquired by Byju's) and later led Byju's Test Prep division.
+                    </p>
+                    <p className="leading-relaxed">
+                      With his international education background and corporate leadership experience, Karthik provides invaluable guidance to students aiming for prestigious universities abroad.
+                    </p>
+                  </>
                 )}
               </div>
-            </div>
-          </div>
-          
-          <div className="mt-auto pt-4 space-y-3">
-            <div className="bg-white rounded-lg p-3 shadow-sm flex items-start">
-              <Award className="w-5 h-5 text-accent mt-1 mr-3 flex-shrink-0" />
-              <div>
-                <h6 className="font-medium">Elite University Expertise</h6>
-                <p className="text-sm text-gray-600">Gain insider knowledge that maximizes admissions success</p>
-              </div>
-            </div>
-            <div className="bg-white rounded-lg p-3 shadow-sm flex items-start">
-              <Clock className="w-5 h-5 text-accent mt-1 mr-3 flex-shrink-0" />
-              <div>
-                <h6 className="font-medium">Personalized Strategy</h6>
-                <p className="text-sm text-gray-600">Get your customized university admissions roadmap</p>
+              
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+                <div className="bg-white p-2 rounded-lg flex items-center gap-2 shadow-sm">
+                  <div className="bg-accent/20 p-1 rounded">
+                    <Award className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-medium">Elite Mentorship</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg flex items-center gap-2 shadow-sm">
+                  <div className="bg-accent/20 p-1 rounded">
+                    <Award className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-medium">Personalized Strategy</span>
+                </div>
+                <div className="bg-white p-2 rounded-lg flex items-center gap-2 shadow-sm">
+                  <div className="bg-accent/20 p-1 rounded">
+                    <Award className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="font-medium">Application Review</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Calendar Booking Section - Mobile-optimized */}
-        <div className="md:col-span-6">
-          {/* For desktop, keep some styling */}
-          <div className="hidden md:block p-4 bg-white rounded-xl border-2 border-accent/30 shadow-md mb-3">
-            <h4 className="text-lg font-semibold text-primary mb-2 flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-accent" />
-              Book Your Strategy Session
-            </h4>
-            <p className="text-sm text-gray-600">
-              Select a convenient date and time to meet with {isBCH ? "Viswanathan" : "Karthik"}
-            </p>
+        {/* Date Selection - Calendar Style */}
+        <div className="mb-6">
+          <div className="flex items-center gap-2 mb-3">
+            <Calendar className="h-5 w-5 text-primary" />
+            <Label className="text-lg font-medium">Select a Date</Label>
           </div>
           
-          {/* For mobile, minimal header with no borders */}
-          <div className="md:hidden mb-2 px-2">
-            <h4 className="text-lg font-semibold text-primary flex items-center">
-              <Calendar className="w-5 h-5 mr-2 text-accent" />
-              Book Your Strategy Session
-            </h4>
+          <div className="grid grid-cols-7 gap-2 mb-2">
+            {/* Day labels */}
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+              <div key={day} className="text-center text-xs font-medium text-gray-500">
+                {day}
+              </div>
+            ))}
           </div>
           
-          {/* Calendar container - edge-to-edge on mobile */}
-          <div className="w-full -mx-4 md:mx-0 md:rounded-lg md:border md:shadow-sm overflow-hidden">
-            {isBCH ? (
-              <iframe 
-                ref={calendarRef}
-                src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ2zIu2-c5X26ahjTSkRsCM1ylgz396869XxCVr9CmbaGgQxag_-Laj7HGPcKcsZ4ySW16ocYTnh?gv=true" 
-                style={{ border: 0, width: '100%', height: '600px' }}
-                frameBorder="0"
-                title="Select a Counselling Slot"
-                className="w-full min-w-full"
-              ></iframe>
-            ) : (
-              <iframe 
-                ref={calendarRef}
-                src="https://calendar.google.com/calendar/appointments/schedules/AcZssZ36ypV_jEDk5i6nxMNGpNN5h2xEWm33stJsGB7YU5_SortE8oM9dwQ4Iy0kwbpoKopDkyqerG_H?gv=true" 
-                style={{ border: 0, width: '100%', height: '600px' }}
-                frameBorder="0"
-                title="Select a Counselling Slot"
-                className="w-full min-w-full"
-              ></iframe>
-            )}
-          </div>
-          
-          <div className="mt-3 hidden md:block bg-primary/5 rounded-lg p-3 border border-primary/10">
-            <p className="text-sm text-center font-medium">
-              After booking your session, your application will be automatically submitted.
-            </p>
-          </div>
-          
-          {/* Mobile note - no borders, just text */}
-          <div className="mt-3 md:hidden px-2">
-            <p className="text-sm text-center font-medium text-gray-700">
-              After booking your session, your application will be automatically submitted.
-            </p>
+          <div className="grid grid-cols-7 gap-2">
+            {/* Calculate starting position based on first day of week */}
+            {Array.from({ length: calendarDates[0]?.getDay() || 0 }, (_, i) => (
+              <div key={`empty-${i}`} className="h-14"></div>
+            ))}
+            
+            {/* Calendar days */}
+            {calendarDates.map((date, index) => {
+              const { day, date: dateNum, month } = formatDateDisplay(date);
+              return (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleDateSelect(date)}
+                  className={cn(
+                    "h-14 rounded-lg flex flex-col items-center justify-center border-2 transition-all",
+                    selectedDate && date.getDate() === selectedDate.getDate() && date.getMonth() === selectedDate.getMonth()
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-gray-200 hover:border-gray-300",
+                    isToday(date) && "ring-2 ring-accent/30"
+                  )}
+                >
+                  <span className="text-xs font-semibold">{day.charAt(0)}</span>
+                  <span className="text-sm font-bold">{dateNum}</span>
+                  <span className="text-xs">{month}</span>
+                </button>
+              );
+            })}
+            
+            {/* Show future days as disabled */}
+            {Array.from({ length: 35 - (calendarDates.length + (calendarDates[0]?.getDay() || 0)) }, (_, i) => (
+              <button
+                key={`future-${i}`}
+                disabled
+                className="h-14 rounded-lg flex flex-col items-center justify-center border-2 border-gray-100 opacity-40"
+              >
+                <span className="text-xs font-semibold">-</span>
+                <span className="text-sm font-bold">-</span>
+                <span className="text-xs">-</span>
+              </button>
+            ))}
           </div>
         </div>
-      </div>
+
+        {/* Time Slot Selection - Horizontal for Desktop, Vertical for Mobile */}
+        {selectedDate && (
+          <div className="mb-8">
+            <div className="flex items-center gap-2 mb-3">
+              <Clock className="h-5 w-5 text-primary" />
+              <Label className="text-lg font-medium">
+                Available Slots for {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+              </Label>
+            </div>
+            
+            {/* Mobile: Vertical Layout */}
+            <div className="md:hidden space-y-2">
+              {timeSlots.map((slot, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleTimeSlotSelect(slot)}
+                  className={cn(
+                    "w-full py-3 px-4 rounded-lg border-2 text-left transition-colors flex justify-between items-center",
+                    selectedTimeSlot === slot
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-gray-200 hover:border-gray-300"
+                  )}
+                >
+                  <span className="font-medium">{slot}</span>
+                  {selectedTimeSlot === slot && (
+                    <div className="bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                      Selected
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop: Horizontal Grid Layout */}
+            <div className="hidden md:grid grid-cols-4 lg:grid-cols-6 gap-3">
+              {timeSlots.map((slot, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  onClick={() => handleTimeSlotSelect(slot)}
+                  className={cn(
+                    "py-3 px-4 rounded-lg border-2 transition-colors flex items-center justify-between",
+                    selectedTimeSlot === slot
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-gray-200 hover:border-gray-300"
+                  )}
+                >
+                  <span className="font-medium">{slot}</span>
+                  {selectedTimeSlot === slot && (
+                    <div className="ml-2 bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                      ✓
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Booking Confirmation */}
+        {selectedTimeSlot && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+            <h5 className="font-medium text-green-800 mb-1">Session Details</h5>
+            <p className="text-sm text-green-700">
+              You've selected a session with <span className="font-semibold">{counselorName}</span> on {selectedDate?.toLocaleDateString('en-US', {
+                weekday: 'long',
+                month: 'long',
+                day: 'numeric'
+              })} at {selectedTimeSlot}.
+            </p>
+          </div>
+        )}
+
+        {/* Submit Button */}
+        <div className="flex justify-end mt-8">
+          <button
+            type="submit"
+            disabled={isSubmitting || !selectedTimeSlot}
+            className={cn(
+              "h-14 px-8 rounded-lg text-lg font-semibold transition-all duration-300 shadow-md flex items-center space-x-2",
+              selectedTimeSlot 
+                ? "bg-accent text-primary hover:bg-accent-light hover:shadow-lg" 
+                : "bg-gray-200 text-gray-500 cursor-not-allowed"
+            )}
+          >
+            <span>Submit Application</span>
+            <ChevronRight className="w-5 h-5" />
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

@@ -21,7 +21,7 @@ const academicDetailsSchema = z.object({
   academicPerformance: z.enum(['top_5', 'top_10', 'top_25', 'others']),
   targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
   preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
-  scholarshipRequirement: z.enum(['good_to_have', 'must_have']),
+  scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
   contactMethods: z.object({
     call: z.boolean().default(false),
     callNumber: z.string().optional(),
@@ -250,20 +250,53 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           </div>
         </div>
 
-        <div className="space-y-2">
-          <Label>Scholarship Requirement</Label>
-          <Select 
-            onValueChange={(value) => setValue('scholarshipRequirement', value as AcademicDetailsData['scholarshipRequirement'])}
-            defaultValue={defaultValues?.scholarshipRequirement}
-          >
-            <SelectTrigger className="h-12 bg-white border-gray-200">
-              <SelectValue placeholder="Select scholarship requirement" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="good_to_have">Good to have</SelectItem>
-              <SelectItem value="must_have">Must-have</SelectItem>
-            </SelectContent>
-          </Select>
+        <div className="space-y-3">
+          <Label>Level of scholarship needed<span className="text-red-500">*</span></Label>
+          <p className="text-sm text-gray-600 mb-2">
+            Please select your scholarship requirements:
+          </p>
+          
+          <div className="space-y-3">
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="full_scholarship"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Full scholarship needed</span>
+                <p className="text-sm text-gray-600">I require 100% financial assistance to pursue my studies</p>
+              </div>
+            </label>
+            
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="partial_scholarship"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Partial scholarship needed</span>
+                <p className="text-sm text-gray-600">I can cover some costs but require partial financial support</p>
+              </div>
+            </label>
+            
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+              <input
+                type="radio"
+                {...register('scholarshipRequirement')}
+                value="scholarship_optional"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="font-medium">Scholarship optional</span>
+                <p className="text-sm text-gray-600">I can pursue my studies without scholarship support</p>
+              </div>
+            </label>
+          </div>
+          
           {errors.scholarshipRequirement && (
             <p className="text-sm text-red-500">{errors.scholarshipRequirement.message}</p>
           )}

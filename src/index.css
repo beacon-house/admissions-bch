@@ -104,6 +104,28 @@
   .cta-button {
     @apply bg-accent text-primary px-8 py-4 rounded-lg text-lg font-semibold hover:bg-accent-light transition-all duration-300 shadow-md hover:shadow-lg;
   }
+  
+  /* Evaluation Animation Overlay */
+  .evaluation-overlay {
+    @apply fixed inset-0 z-50 flex items-center justify-center;
+    background-color: #fff;
+  }
+  
+  .evaluation-content {
+    @apply bg-white rounded-xl shadow-lg p-8 max-w-md w-full;
+  }
+  
+  .evaluation-step {
+    @apply text-primary font-medium;
+  }
+  
+  .evaluation-heading {
+    @apply text-xl font-bold text-primary mb-2;
+  }
+  
+  .evaluation-subtext {
+    @apply text-gray-800 font-medium;
+  }
 }
 
 /* Mobile sticky CTA animations */
