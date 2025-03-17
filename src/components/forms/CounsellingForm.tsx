@@ -69,14 +69,27 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
   }, []);
 
   // Generate available time slots (10 AM to 8 PM, except 2-3 PM)
+  // Filter out slots that are less than 2 hours from current time
   const getTimeSlots = () => {
+    const now = new Date();
+    const today = new Date().setHours(0, 0, 0, 0);
+    const selectedDay = selectedDate ? selectedDate.setHours(0, 0, 0, 0) : null;
+    const isToday = today === selectedDay;
+    
+    // Get current hour and add 2 hours for minimum buffer
+    const currentHour = now.getHours();
+    const minHour = isToday ? currentHour + 2 : 10; // If today, slots must be at least 2 hours from now
+    
     const slots = [];
     for (let hour = 10; hour <= 20; hour++) {
       // Skip the 2 PM slot (blackout period)
       if (hour !== 14) {
-        // Special case for 12 PM (noon)
-        const formattedHour = hour === 12 ? "12 PM" : (hour > 12 ? `${hour - 12} PM` : `${hour} AM`);
-        slots.push(formattedHour);
+        // Skip if the hour is less than minHour for today
+        if (!isToday || hour >= minHour) {
+          // Special case for 12 PM (noon)
+          const formattedHour = hour === 12 ? "12 PM" : (hour > 12 ? `${hour - 12} PM` : `${hour} AM`);
+          slots.push(formattedHour);
+        }
       }
     }
     return slots;
