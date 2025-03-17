@@ -181,10 +181,10 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             placeholder="Enter your university name"
             id="schoolName"
             {...register('schoolName')}
-            className="h-12"
+            className="h-12 bg-white"
           />
           {errors.schoolName && (
-            <p className="text-sm text-red-500">{errors.schoolName.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.schoolName.message}</p>
           )}
         </div>
 
@@ -207,7 +207,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             </SelectContent>
           </Select>
           {errors.graduationStatus && (
-            <p className="text-sm text-red-500">{errors.graduationStatus.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.graduationStatus.message}</p>
           )}
         </div>
 
@@ -229,7 +229,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             </SelectContent>
           </Select>
           {errors.intake && (
-            <p className="text-sm text-red-500">{errors.intake.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.intake.message}</p>
           )}
 
           {/* Other intake text field */}
@@ -238,7 +238,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <Input
                 placeholder="Please specify your intake"
                 {...register('intakeOther')}
-                className="h-12"
+                className="h-12 bg-white"
               />
             </div>
           )}
@@ -262,18 +262,18 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             </SelectContent>
           </Select>
           {errors.workExperience && (
-            <p className="text-sm text-red-500">{errors.workExperience.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.workExperience.message}</p>
           )}
         </div>
 
         {/* Target Geographies */}
         <div className="space-y-2">
           <Label>Target Geographies</Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Select your preferred destinations
           </p>
           {errors.preferredCountries && (
-            <p className="text-sm text-red-500 mb-2">{errors.preferredCountries.message}</p>
+            <p className="text-sm text-red-500 italic mb-2">{errors.preferredCountries.message}</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
@@ -345,10 +345,10 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                 placeholder="Enter your GPA (e.g., 8.2)"
                 id="gpaValue"
                 {...register('gpaValue')}
-                className="h-12"
+                className="h-12 bg-white"
               />
               {errors.gpaValue && (
-                <p className="text-sm text-red-500">{errors.gpaValue.message || "Please provide your GPA"}</p>
+                <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
               )}
             </div>
           ) : (
@@ -358,10 +358,10 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                 placeholder="Enter your percentage (e.g., 85%)"
                 id="percentageValue"
                 {...register('percentageValue')}
-                className="h-12"
+                className="h-12 bg-white"
               />
               {errors.percentageValue && (
-                <p className="text-sm text-red-500">{errors.percentageValue.message || "Please provide your percentage"}</p>
+                <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
               )}
             </div>
           )}
@@ -374,10 +374,10 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             placeholder="E.g., Computer Science, Business Analytics, etc."
             id="fieldOfStudy"
             {...register('fieldOfStudy')}
-            className="h-12"
+            className="h-12 bg-white"
           />
           {errors.fieldOfStudy && (
-            <p className="text-sm text-red-500">{errors.fieldOfStudy.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.fieldOfStudy.message}</p>
           )}
         </div>
 
@@ -399,7 +399,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             </SelectContent>
           </Select>
           {errors.entranceExam && (
-            <p className="text-sm text-red-500">{errors.entranceExam.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.entranceExam.message}</p>
           )}
 
           {/* Show score input if GRE or GMAT selected */}
@@ -408,7 +408,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <Input
                 placeholder={selectedEntranceExam === 'gre' ? "GRE Score" : "GMAT Score"}
                 {...register('examScore')}
-                className="h-12"
+                className="h-12 bg-white"
               />
             </div>
           )}
@@ -417,7 +417,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
         {/* Scholarship Requirement */}
         <div className="space-y-3">
           <Label>Level of scholarship needed<span className="text-red-500">*</span></Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Please select your scholarship requirements:
           </p>
           
@@ -463,14 +463,14 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
           </div>
           
           {errors.scholarshipRequirement && (
-            <p className="text-sm text-red-500">{errors.scholarshipRequirement.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
           )}
         </div>
 
         {/* Communication Preferences Section */}
         <div className="space-y-3 pt-4 border-t border-gray-200">
           <Label className="text-lg font-medium">How Would You Like Us to Contact You?</Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Choose your preferred communication methods (select at least one)
           </p>
 
@@ -495,7 +495,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                   disabled={!callChecked}
                   placeholder="Enter phone number for calls"
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !callChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -522,7 +522,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                   disabled={!whatsappChecked}
                   placeholder="Enter WhatsApp number" 
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !whatsappChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -549,7 +549,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                   disabled={!emailChecked}
                   placeholder="Enter email address"
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !emailChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -557,7 +557,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
             </div>
             
             {errors.contactMethods && (
-              <p className="text-sm text-red-500">Please select at least one contact method</p>
+              <p className="text-sm text-red-500 italic">Please select at least one contact method</p>
             )}
           </div>
         </div>

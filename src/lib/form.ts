@@ -59,10 +59,13 @@ export const submitFormData = async (
     }
   }
 
-  // Map the scholarship requirement to the old format for backwards compatibility
-  let scholarshipRequirement = data.scholarshipRequirement;
-  if (scholarshipRequirement) {
-    scholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
+  // Store the original scholarship requirement value for webhook
+  const originalScholarshipRequirement = data.scholarshipRequirement;
+  
+  // Map the scholarship requirement for internal lead categorization only
+  let mappedScholarshipRequirement = null;
+  if (originalScholarshipRequirement) {
+    mappedScholarshipRequirement = mapScholarshipRequirement(originalScholarshipRequirement);
   }
 
   // Create a clean payload with just the data we need
@@ -84,11 +87,11 @@ export const submitFormData = async (
     targetUniversityRank: data.targetUniversityRank,
     preferredCountries: data.preferredCountries,
     
-    // Use mapped scholarship requirement value
-    scholarshipRequirement,
+    // Send original scholarship requirement value to webhook (not mapped)
+    scholarshipRequirement: originalScholarshipRequirement,
     
-    // Include original scholarship requirement for reference
-    originalScholarshipRequirement: data.scholarshipRequirement,
+    // Store mapped value for internal reference only
+    mappedScholarshipRequirement: mappedScholarshipRequirement,
     
     // Masters-specific fields
     ...(data.currentGrade === 'masters' && {
