@@ -62,7 +62,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           </SelectContent>
         </Select>
         {errors.formFillerType && (
-          <p className="text-sm text-red-500">{errors.formFillerType.message}</p>
+          <p className="text-sm text-red-500 italic">{errors.formFillerType.message}</p>
         )}
       </div>
 
@@ -83,7 +83,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           </SelectContent>
         </Select>
         {errors.currentGrade && (
-          <p className="text-sm text-red-500">{errors.currentGrade.message}</p>
+          <p className="text-sm text-red-500 italic">{errors.currentGrade.message}</p>
         )}
       </div>
 
@@ -95,12 +95,12 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             id="studentFirstName"
             {...register('studentFirstName')}
             className={cn(
-              "h-12",
+              "h-12 bg-white",
               errors.studentFirstName ? 'border-red-500 focus:border-red-500' : ''
             )}
           />
           {errors.studentFirstName && (
-            <p className="text-sm text-red-500">{errors.studentFirstName.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.studentFirstName.message}</p>
           )}
         </div>
 
@@ -111,12 +111,12 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             id="studentLastName"
             {...register('studentLastName')}
             className={cn(
-              "h-12",
+              "h-12 bg-white",
               errors.studentLastName ? 'border-red-500 focus:border-red-500' : ''
             )}
           />
           {errors.studentLastName && (
-            <p className="text-sm text-red-500">{errors.studentLastName.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.studentLastName.message}</p>
           )}
         </div>
       </div>
@@ -128,12 +128,12 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           id="parentName"
           {...register('parentName')}
           className={cn(
-            "h-12",
+            "h-12 bg-white",
             errors.parentName ? 'border-red-500 focus:border-red-500' : ''
           )}
         />
         {errors.parentName && (
-          <p className="text-sm text-red-500">{errors.parentName.message}</p>
+          <p className="text-sm text-red-500 italic">{errors.parentName.message}</p>
         )}
       </div>
 
@@ -146,12 +146,12 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             type="email"
             {...register('email')}
             className={cn(
-              "h-12",
+              "h-12 bg-white",
               errors.email ? 'border-red-500 focus:border-red-500' : ''
             )}
           />
           {errors.email && (
-            <p className="text-sm text-red-500">{errors.email.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.email.message}</p>
           )}
         </div>
 
@@ -162,12 +162,12 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             id="phoneNumber"
             {...register('phoneNumber')}
             className={cn(
-              "h-12",
+              "h-12 bg-white",
               errors.phoneNumber ? 'border-red-500 focus:border-red-500' : ''
             )}
           />
           {errors.phoneNumber && (
-            <p className="text-sm text-red-500">{errors.phoneNumber.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.phoneNumber.message}</p>
           )}
           <div className="mt-2">
             <label className="flex items-center space-x-2 text-sm text-gray-600">

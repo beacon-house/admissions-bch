@@ -157,7 +157,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.curriculumType && (
-            <p className="text-sm text-red-500">{errors.curriculumType.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.curriculumType.message}</p>
           )}
         </div>
 
@@ -167,10 +167,10 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             placeholder="Enter your school name"
             id="schoolName"
             {...register('schoolName')}
-            className="h-12"
+            className="h-12 bg-white"
           />
           {errors.schoolName && (
-            <p className="text-sm text-red-500">{errors.schoolName.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.schoolName.message}</p>
           )}
         </div>
 
@@ -191,7 +191,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.academicPerformance && (
-            <p className="text-sm text-red-500">{errors.academicPerformance.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.academicPerformance.message}</p>
           )}
         </div>
 
@@ -212,17 +212,17 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.targetUniversityRank && (
-            <p className="text-sm text-red-500">{errors.targetUniversityRank.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.targetUniversityRank.message}</p>
           )}
         </div>
 
         <div className="space-y-2">
           <Label>Target Geographies</Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Select your preferred destinations (includes typical budget ranges)
           </p>
           {errors.preferredCountries && (
-            <p className="text-sm text-red-500 mb-2">{errors.preferredCountries.message}</p>
+            <p className="text-sm text-red-500 italic mb-2">{errors.preferredCountries.message}</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
@@ -252,7 +252,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
 
         <div className="space-y-3">
           <Label>Level of scholarship needed<span className="text-red-500">*</span></Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Please select your scholarship requirements:
           </p>
           
@@ -298,14 +298,14 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           </div>
           
           {errors.scholarshipRequirement && (
-            <p className="text-sm text-red-500">{errors.scholarshipRequirement.message}</p>
+            <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
           )}
         </div>
 
         {/* Communication Preferences Section */}
         <div className="space-y-3 pt-4 border-t border-gray-200">
           <Label className="text-lg font-medium">How Would You Like Us to Contact You?</Label>
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-gray-600 mb-2 italic">
             Choose your preferred communication methods (select at least one)
           </p>
 
@@ -330,7 +330,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                   disabled={!callChecked}
                   placeholder="Enter phone number for calls"
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !callChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -357,7 +357,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                   disabled={!whatsappChecked}
                   placeholder="Enter WhatsApp number" 
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !whatsappChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -384,7 +384,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                   disabled={!emailChecked}
                   placeholder="Enter email address"
                   className={cn(
-                    "h-10",
+                    "h-10 bg-white",
                     !emailChecked && "bg-gray-100 text-gray-500"
                   )}
                 />
@@ -392,7 +392,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </div>
             
             {errors.contactMethods && (
-              <p className="text-sm text-red-500">Please select at least one contact method</p>
+              <p className="text-sm text-red-500 italic">Please select at least one contact method</p>
             )}
           </div>
         </div>

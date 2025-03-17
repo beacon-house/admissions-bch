@@ -94,6 +94,16 @@
   input, select, textarea {
     font-size: 16px;
   }
+  
+  /* Form helper text styling */
+  .text-sm.text-gray-600 {
+    @apply italic text-gray-800;
+  }
+  
+  /* Form error messages */
+  .text-sm.text-red-500 {
+    @apply italic;
+  }
 }
 
 @layer components {
