@@ -10,7 +10,10 @@ import {
   GRADUATION_STATUS_OPTIONS,
   WORK_EXPERIENCE_OPTIONS,
   ENTRANCE_EXAM_OPTIONS,
-  GRADE_FORMAT_OPTIONS
+  GRADE_FORMAT_OPTIONS,
+  APPLICATION_PREPARATION_OPTIONS,
+  TARGET_UNIVERSITIES_OPTIONS,
+  SUPPORT_LEVEL_OPTIONS
 } from '@/types/form';
 
 // Personal Details Schema
@@ -63,8 +66,10 @@ export const mastersAcademicDetailsSchema = z.object({
   entranceExam: z.enum(ENTRANCE_EXAM_OPTIONS),
   examScore: z.string().optional(),
   fieldOfStudy: z.string().min(1, 'Field of study is required'),
+  applicationPreparation: z.enum(APPLICATION_PREPARATION_OPTIONS),
+  targetUniversities: z.enum(TARGET_UNIVERSITIES_OPTIONS),
+  supportLevel: z.enum(SUPPORT_LEVEL_OPTIONS),
   scholarshipRequirement: z.enum(SCHOLARSHIP_REQUIREMENTS),
-  preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   contactMethods: contactMethodsSchema,
 }).refine(data => {
   if (data.gradeFormat === 'gpa') {

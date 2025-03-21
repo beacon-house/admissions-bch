@@ -82,7 +82,19 @@ export default function FormContainer() {
       
       // Determine lead category
       const leadCategory = formData.currentGrade === 'masters' 
-        ? 'MASTERS' 
+        ? determineLeadCategory(
+            finalData.currentGrade,
+            finalData.formFillerType,
+            finalData.scholarshipRequirement,
+            finalData.curriculumType,
+            undefined, // targetUniversityRank not used for masters
+            finalData.gpaValue,
+            finalData.percentageValue,
+            finalData.intake,
+            finalData.applicationPreparation,
+            finalData.targetUniversities,
+            finalData.supportLevel
+          )
         : determineLeadCategory(
             finalData.currentGrade,
             finalData.formFillerType,

@@ -19,22 +19,71 @@ const mapScholarshipRequirement = (scholarshipRequirement: string): 'must_have' 
  * 1. BCH - High priority leads
  * 2. lum-l1 - Medium-high priority luminaire leads
  * 3. lum-l2 - Medium priority luminaire leads
- * 4. MASTERS - Master's program applicants
- * 5. NURTURE - Default category for all others
+ * 4. masters-l1 - High priority masters leads
+ * 5. masters-l2 - Medium priority masters leads
+ * 6. NURTURE - Default category for all others
  */
 export const determineLeadCategory = (
   currentGrade: string,
   formFillerType: string,
   scholarshipRequirement: string,
   curriculumType: string,
-  targetUniversityRank?: string
+  targetUniversityRank?: string,
+  // Masters-specific fields
+  gpaValue?: string,
+  percentageValue?: string,
+  intake?: string,
+  applicationPreparation?: string,
+  targetUniversities?: string,
+  supportLevel?: string
 ): LeadCategory => {
   // Map the new scholarship requirement format to the old one for compatibility
   const mappedScholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
   
-  // MASTERS category - Always takes precedence
+  // MASTERS category evaluation
   if (currentGrade === 'masters') {
-    return 'MASTERS';
+    // Convert GPA and percentage values to numbers for comparison
+    const gpaNumber = gpaValue ? parseFloat(gpaValue) : 0;
+    const percentageNumber = percentageValue ? parseFloat(percentageValue) : 0;
+    
+    // Masters Level 1 conditions
+    const isMastersL1 = 
+      // Academic criteria: GPA > 8.5 OR Percentage > 85%
+      ((gpaValue && gpaNumber > 8.5) || (percentageValue && percentageNumber > 85)) &&
+      // Scholarship: optional OR partial
+      (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship') &&
+      // Intake: 2026 OR 2027
+      (intake === 'aug_sept_2026' || intake === 'jan_2026') &&
+      // Application preparation: started research OR taking exams
+      (applicationPreparation === 'started_research' || applicationPreparation === 'taking_exams') &&
+      // Target universities: top 20-50 OR top 50-100
+      (targetUniversities === 'top_20_50' || targetUniversities === 'top_50_100') &&
+      // Support level: personalized guidance OR exploring options
+      (supportLevel === 'personalized_guidance' || supportLevel === 'exploring_options');
+    
+    // Masters Level 2 conditions
+    const isMastersL2 = 
+      // Academic criteria: GPA ≤ 8.5 OR Percentage ≤ 85%
+      ((gpaValue && gpaNumber <= 8.5) || (percentageValue && percentageNumber <= 85)) &&
+      // Scholarship: optional OR partial
+      (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship') &&
+      // Intake: 2026 only
+      (intake === 'aug_sept_2026' || intake === 'jan_2026') &&
+      // Application preparation: started research OR taking exams
+      (applicationPreparation === 'started_research' || applicationPreparation === 'taking_exams') &&
+      // Target universities: top 20-50 OR top 50-100
+      (targetUniversities === 'top_20_50' || targetUniversities === 'top_50_100') &&
+      // Support level: personalized guidance OR exploring options
+      (supportLevel === 'personalized_guidance' || supportLevel === 'exploring_options');
+    
+    if (isMastersL1) {
+      return 'masters-l1';
+    } else if (isMastersL2) {
+      return 'masters-l2';
+    } else {
+      // If masters but doesn't fit l1 or l2 criteria, categorize as NURTURE
+      return 'NURTURE';
+    }
   }
 
   // BCH category
@@ -105,6 +154,6 @@ export const determineLeadCategory = (
     return 'lum-l2';
   }
 
-  // Default: NURTURE for all other cases
+  // Default: NURTURE for all other cases, including Grade 7 or below
   return 'NURTURE';
 };
