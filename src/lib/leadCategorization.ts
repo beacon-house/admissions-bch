@@ -22,6 +22,7 @@ const mapScholarshipRequirement = (scholarshipRequirement: string): 'must_have' 
  * 4. masters-l1 - High priority masters leads
  * 5. masters-l2 - Medium priority masters leads
  * 6. NURTURE - Default category for all others
+ * 7. DROP - Grade 7 or below, form directly submitted after step 1
  */
 export const determineLeadCategory = (
   currentGrade: string,
@@ -37,53 +38,36 @@ export const determineLeadCategory = (
   targetUniversities?: string,
   supportLevel?: string
 ): LeadCategory => {
+  // Special case: Grade 7 or below is directly submitted after step 1 and categorized as DROP
+  if (currentGrade === '7_below') {
+    return 'DROP';
+  }
+  
   // Map the new scholarship requirement format to the old one for compatibility
   const mappedScholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
   
   // MASTERS category evaluation
   if (currentGrade === 'masters') {
-    // Convert GPA and percentage values to numbers for comparison
-    const gpaNumber = gpaValue ? parseFloat(gpaValue) : 0;
-    const percentageNumber = percentageValue ? parseFloat(percentageValue) : 0;
-    
-    // Masters Level 1 conditions
-    const isMastersL1 = 
-      // Academic criteria: GPA > 8.5 OR Percentage > 85%
-      ((gpaValue && gpaNumber > 8.5) || (percentageValue && percentageNumber > 85)) &&
-      // Scholarship: optional OR partial
-      (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship') &&
-      // Intake: 2026 OR 2027
-      (intake === 'aug_sept_2026' || intake === 'jan_2026') &&
-      // Application preparation: started research OR taking exams
-      (applicationPreparation === 'started_research' || applicationPreparation === 'taking_exams') &&
-      // Target universities: top 20-50 OR top 50-100
-      (targetUniversities === 'top_20_50' || targetUniversities === 'top_50_100') &&
-      // Support level: personalized guidance OR exploring options
-      (supportLevel === 'personalized_guidance' || supportLevel === 'exploring_options');
-    
-    // Masters Level 2 conditions
-    const isMastersL2 = 
-      // Academic criteria: GPA ≤ 8.5 OR Percentage ≤ 85%
-      ((gpaValue && gpaNumber <= 8.5) || (percentageValue && percentageNumber <= 85)) &&
-      // Scholarship: optional OR partial
-      (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship') &&
-      // Intake: 2026 only
-      (intake === 'aug_sept_2026' || intake === 'jan_2026') &&
-      // Application preparation: started research OR taking exams
-      (applicationPreparation === 'started_research' || applicationPreparation === 'taking_exams') &&
-      // Target universities: top 20-50 OR top 50-100
-      (targetUniversities === 'top_20_50' || targetUniversities === 'top_50_100') &&
-      // Support level: personalized guidance OR exploring options
-      (supportLevel === 'personalized_guidance' || supportLevel === 'exploring_options');
-    
-    if (isMastersL1) {
-      return 'masters-l1';
-    } else if (isMastersL2) {
-      return 'masters-l2';
-    } else {
-      // If masters but doesn't fit l1 or l2 criteria, categorize as NURTURE
+    // First check if application preparation is "undecided_need_help"
+    // If so, route to NURTURE regardless of other criteria
+    if (applicationPreparation === 'undecided_need_help') {
       return 'NURTURE';
     }
+    
+    // Only proceed with masters-l1/masters-l2 evaluation if the user is actually preparing
+    if (applicationPreparation === 'researching_now' || applicationPreparation === 'taken_exams_identified_universities') {
+      // New Logic based on target universities
+      if (targetUniversities === 'top_20_50') {
+        return 'masters-l1';
+      } else if (targetUniversities === 'top_50_100' || targetUniversities === 'partner_university') {
+        return 'masters-l2';
+      } else if (targetUniversities === 'unsure') {
+        return 'NURTURE';
+      }
+    }
+    
+    // If masters but doesn't fit l1 or l2 criteria, categorize as NURTURE
+    return 'NURTURE';
   }
 
   // BCH category
@@ -154,6 +138,6 @@ export const determineLeadCategory = (
     return 'lum-l2';
   }
 
-  // Default: NURTURE for all other cases, including Grade 7 or below
+  // Default: NURTURE for all other cases
   return 'NURTURE';
 };

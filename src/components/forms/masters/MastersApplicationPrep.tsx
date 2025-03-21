@@ -18,11 +18,11 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
             <input
               type="radio"
               {...register('applicationPreparation')}
-              value="started_research"
+              value="researching_now"
               className="mt-0.5"
             />
             <div>
-              <span className="text-sm text-gray-700">Yes, I have started researching universities and application requirements</span>
+              <span className="text-sm text-gray-700">Yes, I'm researching right now</span>
             </div>
           </label>
           
@@ -30,11 +30,11 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
             <input
               type="radio"
               {...register('applicationPreparation')}
-              value="taking_exams"
+              value="taken_exams_identified_universities"
               className="mt-0.5"
             />
             <div>
-              <span className="text-sm text-gray-700">I have taken or plan to take GRE/GMAT/TOEFL/IELTS soon</span>
+              <span className="text-sm text-gray-700">Have taken GRE/GMAT & identified universities. I need help with the process</span>
             </div>
           </label>
           
@@ -42,23 +42,11 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
             <input
               type="radio"
               {...register('applicationPreparation')}
-              value="just_exploring"
+              value="undecided_need_help"
               className="mt-0.5"
             />
             <div>
-              <span className="text-sm text-gray-700">No, I am just exploring options</span>
-            </div>
-          </label>
-          
-          <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-            <input
-              type="radio"
-              {...register('applicationPreparation')}
-              value="future_applicant"
-              className="mt-0.5"
-            />
-            <div>
-              <span className="text-sm text-gray-700">No, I am looking to apply in 2027 or beyond</span>
+              <span className="text-sm text-gray-700">Yet to decide if I want to apply & need help with deciding</span>
             </div>
           </label>
         </div>
@@ -93,7 +81,19 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
               className="mt-0.5"
             />
             <div>
-              <span className="text-sm text-gray-700">I am open to 50-100 ranked universities or direct admissions through a partner university</span>
+              <span className="text-sm text-gray-700">I am open to 50-100 ranked universities</span>
+            </div>
+          </label>
+          
+          <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
+            <input
+              type="radio"
+              {...register('targetUniversities')}
+              value="partner_university"
+              className="mt-0.5"
+            />
+            <div>
+              <span className="text-sm text-gray-700">I want to get into a Partner University without GRE/GMAT</span>
             </div>
           </label>
           

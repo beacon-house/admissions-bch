@@ -17,7 +17,7 @@ import {
 // Masters Academic Details Schema
 const mastersAcademicDetailsSchema = z.object({
   schoolName: z.string().min(2, 'University name is required'),
-  intake: z.enum(['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other']),
+  intake: z.enum(['aug_sept_2025', 'jan_aug_2026', 'jan_aug_2027', 'other']),
   intakeOther: z.string().optional(),
   graduationStatus: z.enum(['2025', '2026', '2027', 'others', 'graduated']),
   graduationYear: z.string().min(1, 'Graduation year is required').optional().or(z.literal('')),
@@ -28,8 +28,8 @@ const mastersAcademicDetailsSchema = z.object({
   entranceExam: z.enum(['gre', 'gmat', 'planning', 'not_required']),
   examScore: z.string().optional(),
   fieldOfStudy: z.string().min(1, 'Field of study is required'),
-  applicationPreparation: z.enum(['started_research', 'taking_exams', 'just_exploring', 'future_applicant']),
-  targetUniversities: z.enum(['top_20_50', 'top_50_100', 'unsure']),
+  applicationPreparation: z.enum(['researching_now', 'taken_exams_identified_universities', 'undecided_need_help']),
+  targetUniversities: z.enum(['top_20_50', 'top_50_100', 'partner_university', 'unsure']),
   supportLevel: z.enum(['personalized_guidance', 'exploring_options', 'self_guided', 'partner_universities']),
   scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
   contactMethods: z.object({
@@ -234,8 +234,8 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="aug_sept_2025">Aug/Sept 2025</SelectItem>
-                  <SelectItem value="jan_2026">Jan 2026</SelectItem>
-                  <SelectItem value="aug_sept_2026">Aug/Sept 2026</SelectItem>
+                  <SelectItem value="jan_aug_2026">Jan or Aug 2026</SelectItem>
+                  <SelectItem value="jan_aug_2027">Jan or Aug 2027</SelectItem>
                   <SelectItem value="other">Others</SelectItem>
                 </SelectContent>
               </Select>
@@ -413,11 +413,11 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <input
                 type="radio"
                 {...register('applicationPreparation')}
-                value="started_research"
+                value="researching_now"
                 className="mt-0.5"
               />
               <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">Yes, I have started researching universities and application requirements</span>
+                <span className="text-sm font-medium text-gray-700">Yes, I'm researching right now</span>
               </div>
             </label>
             
@@ -425,11 +425,11 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <input
                 type="radio"
                 {...register('applicationPreparation')}
-                value="taking_exams"
+                value="taken_exams_identified_universities"
                 className="mt-0.5"
               />
               <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I have taken or plan to take GRE/GMAT/TOEFL/IELTS soon</span>
+                <span className="text-sm font-medium text-gray-700">Have taken GRE/GMAT & identified universities. I need help with the process</span>
               </div>
             </label>
             
@@ -437,23 +437,11 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
               <input
                 type="radio"
                 {...register('applicationPreparation')}
-                value="just_exploring"
+                value="undecided_need_help"
                 className="mt-0.5"
               />
               <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">No, I am just exploring options</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('applicationPreparation')}
-                value="future_applicant"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">No, I am looking to apply in 2027 or beyond</span>
+                <span className="text-sm font-medium text-gray-700">Yet to decide if I want to apply & need help with deciding</span>
               </div>
             </label>
           </div>
@@ -488,7 +476,19 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
                 className="mt-0.5"
               />
               <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I am open to 50-100 ranked universities or direct admissions through a partner university</span>
+                <span className="text-sm font-medium text-gray-700">I am open to 50-100 ranked universities</span>
+              </div>
+            </label>
+            
+            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
+              <input
+                type="radio"
+                {...register('targetUniversities')}
+                value="partner_university"
+                className="mt-0.5"
+              />
+              <div className="space-y-1">
+                <span className="text-sm font-medium text-gray-700">I want to get into a Partner University without GRE/GMAT</span>
               </div>
             </label>
             

@@ -89,8 +89,8 @@ export function MastersBasicDetails({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="aug_sept_2025">Aug/Sept 2025</SelectItem>
-                <SelectItem value="jan_2026">Jan 2026</SelectItem>
-                <SelectItem value="aug_sept_2026">Aug/Sept 2026</SelectItem>
+                <SelectItem value="jan_aug_2026">Jan or Aug 2026</SelectItem>
+                <SelectItem value="jan_aug_2027">Jan or Aug 2027</SelectItem>
                 <SelectItem value="other">Others</SelectItem>
               </SelectContent>
             </Select>

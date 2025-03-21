@@ -43,10 +43,20 @@ export default function FormContainer() {
       });
       trackFormStepComplete(1);
       
-      // If grade 7 or below, submit form immediately
+      // If grade 7 or below, submit form immediately with DROP lead category
       if (data.currentGrade === '7_below') {
         setSubmitting(true);
-        await submitFormData(data, 1, startTime);
+        // Determine lead category as DROP for grade 7 or below
+        const leadCategory = determineLeadCategory(
+          data.currentGrade,
+          data.formFillerType,
+          'scholarship_optional', // Default value, not used for categorization in this case
+          'Others' // Default value, not used for categorization in this case
+        );
+        // Update form data with lead category
+        updateFormData({ lead_category: leadCategory });
+        // Submit form with lead category
+        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true);
         setSubmitting(false);
         setSubmitted(true);
         return;
