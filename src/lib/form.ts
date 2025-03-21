@@ -105,7 +105,10 @@ export const submitFormData = async (
       gpaValue: data.gpaValue,
       percentageValue: data.percentageValue,
       entranceExam: data.entranceExam,
-      examScore: data.examScore
+      examScore: data.examScore,
+      applicationPreparation: data.applicationPreparation,
+      targetUniversities: data.targetUniversities,
+      supportLevel: data.supportLevel
     }),
     
     // Lead categorization

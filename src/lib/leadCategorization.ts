@@ -19,22 +19,55 @@ const mapScholarshipRequirement = (scholarshipRequirement: string): 'must_have' 
  * 1. BCH - High priority leads
  * 2. lum-l1 - Medium-high priority luminaire leads
  * 3. lum-l2 - Medium priority luminaire leads
- * 4. MASTERS - Master's program applicants
- * 5. NURTURE - Default category for all others
+ * 4. masters-l1 - High priority masters leads
+ * 5. masters-l2 - Medium priority masters leads
+ * 6. NURTURE - Default category for all others
+ * 7. DROP - Grade 7 or below, form directly submitted after step 1
  */
 export const determineLeadCategory = (
   currentGrade: string,
   formFillerType: string,
   scholarshipRequirement: string,
   curriculumType: string,
-  targetUniversityRank?: string
+  targetUniversityRank?: string,
+  // Masters-specific fields
+  gpaValue?: string,
+  percentageValue?: string,
+  intake?: string,
+  applicationPreparation?: string,
+  targetUniversities?: string,
+  supportLevel?: string
 ): LeadCategory => {
+  // Special case: Grade 7 or below is directly submitted after step 1 and categorized as DROP
+  if (currentGrade === '7_below') {
+    return 'DROP';
+  }
+  
   // Map the new scholarship requirement format to the old one for compatibility
   const mappedScholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
   
-  // MASTERS category - Always takes precedence
+  // MASTERS category evaluation
   if (currentGrade === 'masters') {
-    return 'MASTERS';
+    // First check if application preparation is "undecided_need_help"
+    // If so, route to NURTURE regardless of other criteria
+    if (applicationPreparation === 'undecided_need_help') {
+      return 'NURTURE';
+    }
+    
+    // Only proceed with masters-l1/masters-l2 evaluation if the user is actually preparing
+    if (applicationPreparation === 'researching_now' || applicationPreparation === 'taken_exams_identified_universities') {
+      // New Logic based on target universities
+      if (targetUniversities === 'top_20_50') {
+        return 'masters-l1';
+      } else if (targetUniversities === 'top_50_100' || targetUniversities === 'partner_university') {
+        return 'masters-l2';
+      } else if (targetUniversities === 'unsure') {
+        return 'NURTURE';
+      }
+    }
+    
+    // If masters but doesn't fit l1 or l2 criteria, categorize as NURTURE
+    return 'NURTURE';
   }
 
   // BCH category

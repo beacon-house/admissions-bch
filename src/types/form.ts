@@ -9,14 +9,35 @@ export const FORM_FILLER_TYPES = ['parent', 'student'] as const;
 export const TARGET_UNIVERSITY_RANKS = ['top_20', 'top_50', 'top_100', 'any_good'] as const;
 
 // Masters-specific enums
-export const INTAKE_OPTIONS = ['aug_sept_2025', 'jan_2026', 'aug_sept_2026', 'other'] as const;
+export const INTAKE_OPTIONS = ['aug_sept_2025', 'jan_aug_2026', 'jan_aug_2027', 'other'] as const;
 export const GRADUATION_STATUS_OPTIONS = ['2025', '2026', '2027', 'others', 'graduated'] as const;
 export const WORK_EXPERIENCE_OPTIONS = ['0_years', '1_2_years', '3_5_years', '6_plus_years'] as const;
 export const ENTRANCE_EXAM_OPTIONS = ['gre', 'gmat', 'planning', 'not_required'] as const;
 export const GRADE_FORMAT_OPTIONS = ['gpa', 'percentage'] as const;
 
+// New masters-specific enums
+export const APPLICATION_PREPARATION_OPTIONS = [
+  'researching_now',
+  'taken_exams_identified_universities',
+  'undecided_need_help'
+] as const;
+
+export const TARGET_UNIVERSITIES_OPTIONS = [
+  'top_20_50',
+  'top_50_100',
+  'partner_university',
+  'unsure'
+] as const;
+
+export const SUPPORT_LEVEL_OPTIONS = [
+  'personalized_guidance',
+  'exploring_options',
+  'self_guided',
+  'partner_universities'
+] as const;
+
 // Lead Categories
-export const LEAD_CATEGORIES = ['BCH', 'lum-l1', 'lum-l2', 'NURTURE', 'MASTERS'] as const;
+export const LEAD_CATEGORIES = ['BCH', 'lum-l1', 'lum-l2', 'NURTURE', 'masters-l1', 'masters-l2', 'DROP'] as const;
 export type LeadCategory = typeof LEAD_CATEGORIES[number];
 
 // Base form interfaces
@@ -68,8 +89,10 @@ export interface MastersAcademicFormData {
   entranceExam: typeof ENTRANCE_EXAM_OPTIONS[number];
   examScore?: string;
   fieldOfStudy: string;
+  applicationPreparation: typeof APPLICATION_PREPARATION_OPTIONS[number];
+  targetUniversities: typeof TARGET_UNIVERSITIES_OPTIONS[number];
+  supportLevel: typeof SUPPORT_LEVEL_OPTIONS[number];
   scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
-  preferredCountries: string[];
   contactMethods: ContactMethods;
 }
 
