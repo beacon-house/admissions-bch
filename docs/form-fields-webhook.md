@@ -36,7 +36,7 @@
 |---------------|----------------------|-----------------|
 | Current/Previous University | `schoolName` | Free text |
 | Expected graduation | `graduationStatus` | `2025`, `2026`, `2027`, `others`, `graduated` |
-| Which intake are you applying for? | `intake` | `aug_sept_2025`, `jan_2026`, `aug_sept_2026`, `other` |
+| Which intake are you applying for? | `intake` | `aug_sept_2025`, `jan_aug_2026`, `jan_aug_2027`, `other` |
 | Other intake (if specified) | `intakeOther` | Free text |
 | Work experience | `workExperience` | `0_years`, `1_2_years`, `3_5_years`, `6_plus_years` |
 | Grade format | `gradeFormat` | `gpa`, `percentage` |
@@ -45,8 +45,8 @@
 | Intended field of study | `fieldOfStudy` | Free text |
 | GRE/GMAT score status | `entranceExam` | `gre`, `gmat`, `planning`, `not_required` |
 | Exam score | `examScore` | Free text |
-| Have you started preparing for your Master's application? | `applicationPreparation` | `started_research`, `taking_exams`, `just_exploring`, `future_applicant` |
-| Which best describes your target universities and programs? | `targetUniversities` | `top_20_50`, `top_50_100`, `unsure` |
+| Have you started preparing for your Master's application? | `applicationPreparation` | `researching_now`, `taken_exams_identified_universities`, `undecided_need_help` |
+| Which best describes your target universities and programs? | `targetUniversities` | `top_20_50`, `top_50_100`, `partner_university`, `unsure` |
 | What level of support do you need for your Master's applications? | `supportLevel` | `personalized_guidance`, `exploring_options`, `self_guided`, `partner_universities` |
 | Level of scholarship needed | `scholarshipRequirement` | `scholarship_optional`, `partial_scholarship`, `full_scholarship` |
 
@@ -62,7 +62,7 @@
 
 | Question/Field | Webhook Variable Name | Possible Values |
 |---------------|----------------------|-----------------|
-| Lead Category | `lead_category` | `BCH`, `lum-l1`, `lum-l2`, `NURTURE`, `masters-l1`, `masters-l2` |
+| Lead Category | `lead_category` | `BCH`, `lum-l1`, `lum-l2`, `NURTURE`, `masters-l1`, `masters-l2`, `DROP` |
 | Total Time Spent | `total_time_spent` | Number (seconds) |
 | Created At | `created_at` | ISO date string |
 | Step Completed | `step_completed` | `1`, `2`, `3` |
