@@ -73,13 +73,24 @@ export function MastersAcademicInfo({
         {/* Show appropriate input field based on selected format */}
         {gradeFormat === 'gpa' ? (
           <div className="space-y-2">
-            <Label htmlFor="gpaValue" className="text-gray-700">GPA (on a 10.0 scale)</Label>
-            <Input
-              placeholder="Enter your GPA (e.g., 8.2)"
-              id="gpaValue"
-              {...register('gpaValue')}
-              className="h-12 bg-white"
-            />
+            <Label htmlFor="gpaValue" className="text-gray-700">GPA (out of 10)</Label>
+              <Input
+                type="text"
+                inputMode="decimal"
+                pattern="[0-9]*[.]?[0-9]*"
+                placeholder="Enter GPA value (e.g. 8.5)"
+                id="gpaValue"
+                {...register('gpaValue')}
+                className="h-12 bg-white"
+                suffix="/10"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
+                    e.target.value = value;
+                  }
+                }}
+                suffix="/10"
+              />
             {errors.gpaValue && (
               <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
             )}
@@ -87,12 +98,23 @@ export function MastersAcademicInfo({
         ) : (
           <div className="space-y-2">
             <Label htmlFor="percentageValue" className="text-gray-700">Percentage</Label>
-            <Input
-              placeholder="Enter your percentage (e.g., 85%)"
-              id="percentageValue"
-              {...register('percentageValue')}
-              className="h-12 bg-white"
-            />
+              <Input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                placeholder="Enter percentage (e.g. 85)"
+                id="percentageValue"
+                {...register('percentageValue')}
+                className="h-12 bg-white"
+                suffix="%"
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 100)) {
+                    e.target.value = value;
+                  }
+                }}
+                suffix="%"
+              />
             {errors.percentageValue && (
               <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
             )}
