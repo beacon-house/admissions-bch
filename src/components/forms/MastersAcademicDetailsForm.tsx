@@ -1,18 +1,18 @@
+// This file is now refactored into smaller components in the masters/ directory
+// This is maintained as the main entry point that uses those components
+
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { ChevronLeft, ChevronRight, GraduationCap, Phone, MessageSquare, Mail } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '../ui/select';
+import { ChevronLeft, ChevronRight, GraduationCap } from 'lucide-react';
+
+// Import refactored components
+import { MastersBasicDetails } from './masters/MastersBasicDetails';
+import { MastersAcademicInfo } from './masters/MastersAcademicInfo';
+import { MastersApplicationPrep } from './masters/MastersApplicationPrep';
+import { MastersScholarship } from './masters/MastersScholarship';
+import { MastersContactMethods } from './masters/MastersContactMethods';
 
 // Masters Academic Details Schema
 const mastersAcademicDetailsSchema = z.object({
@@ -68,9 +68,7 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
   const [whatsappChecked, setWhatsappChecked] = useState(defaultValues?.contactMethods?.whatsapp !== false); // Default to true unless explicitly false
   const [emailChecked, setEmailChecked] = useState(defaultValues?.contactMethods?.email !== false); // Default to true if not explicitly false
   const [showOtherIntake, setShowOtherIntake] = useState(defaultValues?.intake === 'other');
-  const [selectedEntranceExam, setSelectedEntranceExam] = useState(defaultValues?.entranceExam || 'not_required');
-  const [gradeFormat, setGradeFormat] = useState(defaultValues?.gradeFormat || 'gpa');
-
+  
   const {
     register,
     handleSubmit,
@@ -99,15 +97,12 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
   // Watch for changes to key fields
   const intake = watch('intake');
   const entranceExam = watch('entranceExam');
-  const watchGraduationStatus = watch('graduationStatus');
-  const watchGradeFormat = watch('gradeFormat');
+  const gradeFormat = watch('gradeFormat');
 
   // Update states when values change
   useEffect(() => {
     setShowOtherIntake(intake === 'other');
-    setSelectedEntranceExam(entranceExam);
-    setGradeFormat(watchGradeFormat);
-  }, [intake, entranceExam, watchGradeFormat]);
+  }, [intake]);
 
   // Pre-fill contact methods with user data from step 1
   useEffect(() => {
@@ -175,547 +170,47 @@ export function MastersAcademicDetailsForm({ onSubmit, onBack, defaultValues }: 
       </div>
 
       <div className="space-y-6">
-        {/* University Name */}
-        <div className="space-y-2">
-          <Label htmlFor="schoolName">Current/Previous University</Label>
-          <Input
-            placeholder="Enter your university name"
-            id="schoolName"
-            {...register('schoolName')}
-            className="h-12 bg-white"
-          />
-          {errors.schoolName && (
-            <p className="text-sm text-red-500 italic">{errors.schoolName.message}</p>
-          )}
-        </div>
+        {/* Basic Details section using refactored component */}
+        <MastersBasicDetails 
+          register={register}
+          errors={errors}
+          setValue={setValue}
+          showOtherIntake={showOtherIntake}
+          control={control}
+        />
 
-        {/* Graduation Year */}
-        <div className="space-y-2">
-          <Label>When do you expect to graduate?</Label>
-          <Controller
-            name="graduationStatus"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <SelectTrigger className="h-12 bg-white">
-                  <SelectValue placeholder="Select your expected graduation year" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="2025">2025</SelectItem>
-                  <SelectItem value="2026">2026</SelectItem>
-                  <SelectItem value="2027">2027</SelectItem>
-                  <SelectItem value="others">Others</SelectItem>
-                  <SelectItem value="graduated">Graduated Already</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.graduationStatus && (
-            <p className="text-sm text-red-500 italic">{errors.graduationStatus.message}</p>
-          )}
-        </div>
+        {/* Academic Info section using refactored component */}
+        <MastersAcademicInfo
+          register={register}
+          errors={errors}
+          setValue={setValue}
+          clearErrors={clearErrors}
+          gradeFormat={gradeFormat}
+          selectedEntranceExam={entranceExam}
+          control={control}
+        />
 
-        {/* Intake */}
-        <div className="space-y-2">
-          <Label>Which intake are you applying for?</Label>
-          <Controller
-            name="intake"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <SelectTrigger className="h-12 bg-white">
-                  <SelectValue placeholder="Select intake" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="aug_sept_2025">Aug/Sept 2025</SelectItem>
-                  <SelectItem value="jan_aug_2026">Jan or Aug 2026</SelectItem>
-                  <SelectItem value="jan_aug_2027">Jan or Aug 2027</SelectItem>
-                  <SelectItem value="other">Others</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.intake && (
-            <p className="text-sm text-red-500 italic">{errors.intake.message}</p>
-          )}
+        {/* Application Preparation using refactored component */}
+        <MastersApplicationPrep
+          register={register}
+          errors={errors}
+        />
 
-          {/* Other intake text field */}
-          {showOtherIntake && (
-            <div className="mt-2">
-              <Input
-                placeholder="Please specify your intake"
-                {...register('intakeOther')}
-                className="h-12 bg-white"
-              />
-            </div>
-          )}
-        </div>
+        {/* Scholarship Requirements using refactored component */}
+        <MastersScholarship
+          register={register}
+          errors={errors}
+        />
 
-        {/* Work Experience */}
-        <div className="space-y-2">
-          <Label>How many years of work experience do you have?</Label>
-          <Controller
-            name="workExperience"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <SelectTrigger className="h-12 bg-white">
-                  <SelectValue placeholder="Select work experience" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="0_years">0 years</SelectItem>
-                  <SelectItem value="1_2_years">1-2 years</SelectItem>
-                  <SelectItem value="3_5_years">3-5 years</SelectItem>
-                  <SelectItem value="6_plus_years">6+ years</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.workExperience && (
-            <p className="text-sm text-red-500 italic">{errors.workExperience.message}</p>
-          )}
-        </div>
-
-        {/* Field of Study */}
-        <div className="space-y-2">
-          <Label htmlFor="fieldOfStudy">What is your intended field of study?</Label>
-          <Input
-            placeholder="E.g., Computer Science, Business Analytics, etc."
-            id="fieldOfStudy"
-            {...register('fieldOfStudy')}
-            className="h-12 bg-white"
-          />
-          {errors.fieldOfStudy && (
-            <p className="text-sm text-red-500 italic">{errors.fieldOfStudy.message}</p>
-          )}
-        </div>
-
-        {/* Academic Grade Format Selection */}
-        <div className="space-y-2">
-          <Label>What format would you like to provide your undergraduate grade in?</Label>
-          <div className="grid grid-cols-2 gap-4 mb-2">
-            <button
-              type="button"
-              onClick={() => {
-                setValue('gradeFormat', 'gpa');
-                clearErrors('gpaValue');
-              }}
-              className={cn(
-                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
-                gradeFormat === 'gpa'
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              )}
-            >
-              GPA Format
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setValue('gradeFormat', 'percentage');
-                clearErrors('percentageValue');
-              }}
-              className={cn(
-                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
-                gradeFormat === 'percentage'
-                  ? "bg-primary text-white border-primary"
-                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
-              )}
-            >
-              Percentage Format
-            </button>
-          </div>
-
-          {/* Show appropriate input field based on selected format */}
-          {gradeFormat === 'gpa' ? (
-            <div className="space-y-2">
-              <Label htmlFor="gpaValue">GPA (on a 10.0 scale)</Label>
-              <Input
-                placeholder="Enter your GPA (e.g., 8.2)"
-                id="gpaValue"
-                {...register('gpaValue')}
-                className="h-12 bg-white"
-              />
-              {errors.gpaValue && (
-                <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
-              )}
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="percentageValue">Percentage</Label>
-              <Input
-                placeholder="Enter your percentage (e.g., 85%)"
-                id="percentageValue"
-                {...register('percentageValue')}
-                className="h-12 bg-white"
-              />
-              {errors.percentageValue && (
-                <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Entrance Exam */}
-        <div className="space-y-2">
-          <Label>Do you have a GRE/GMAT score (if required for your programs)?</Label>
-          <Controller
-            name="entranceExam"
-            control={control}
-            render={({ field }) => (
-              <Select 
-                onValueChange={field.onChange} 
-                defaultValue={field.value}
-              >
-                <SelectTrigger className="h-12 bg-white">
-                  <SelectValue placeholder="Select exam status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gre">Yes - GRE</SelectItem>
-                  <SelectItem value="gmat">Yes - GMAT</SelectItem>
-                  <SelectItem value="planning">No - but planning to take it</SelectItem>
-                  <SelectItem value="not_required">Not required for my programs</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-          {errors.entranceExam && (
-            <p className="text-sm text-red-500 italic">{errors.entranceExam.message}</p>
-          )}
-
-          {/* Show score input if GRE or GMAT selected */}
-          {(selectedEntranceExam === 'gre' || selectedEntranceExam === 'gmat') && (
-            <div className="mt-2">
-              <Input
-                placeholder={selectedEntranceExam === 'gre' ? "GRE Score" : "GMAT Score"}
-                {...register('examScore')}
-                className="h-12 bg-white"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Application Preparation - NEW */}
-        <div className="space-y-3">
-          <Label>Have you started preparing for your Master's application?</Label>
-          
-          <div className="space-y-3">
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('applicationPreparation')}
-                value="researching_now"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">Yes, I'm researching right now</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('applicationPreparation')}
-                value="taken_exams_identified_universities"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">Have taken GRE/GMAT & identified universities. I need help with the process</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('applicationPreparation')}
-                value="undecided_need_help"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">Yet to decide if I want to apply & need help with deciding</span>
-              </div>
-            </label>
-          </div>
-          
-          {errors.applicationPreparation && (
-            <p className="text-sm text-red-500 italic">{errors.applicationPreparation.message}</p>
-          )}
-        </div>
-
-        {/* Target Universities - NEW */}
-        <div className="space-y-3">
-          <Label>Which best describes your target universities and programs?</Label>
-          
-          <div className="space-y-3">
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('targetUniversities')}
-                value="top_20_50"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I am aiming for a Top 20-50 ranked global university (QS, THE, US News)</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('targetUniversities')}
-                value="top_50_100"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I am open to 50-100 ranked universities</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('targetUniversities')}
-                value="partner_university"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I want to get into a Partner University without GRE/GMAT</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('targetUniversities')}
-                value="unsure"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I am unsure about my university preferences yet</span>
-              </div>
-            </label>
-          </div>
-          
-          {errors.targetUniversities && (
-            <p className="text-sm text-red-500 italic">{errors.targetUniversities.message}</p>
-          )}
-        </div>
-
-        {/* Support Level - NEW */}
-        <div className="space-y-3">
-          <Label>What level of support do you need for your Master's applications?</Label>
-          
-          <div className="space-y-3">
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('supportLevel')}
-                value="personalized_guidance"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I want personalized guidance (SOP, LORs, university selection, interview prep) and I'm open to investing ₹2-3L for the best possible outcome</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('supportLevel')}
-                value="exploring_options"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I am exploring my options and want to understand how professional guidance can improve my chances</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('supportLevel')}
-                value="self_guided"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I want guidance while I am looking to do the application process myself</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('supportLevel')}
-                value="partner_universities"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">I need help with a simple process that gets me admission into Partner Universities</span>
-              </div>
-            </label>
-          </div>
-          
-          {errors.supportLevel && (
-            <p className="text-sm text-red-500 italic">{errors.supportLevel.message}</p>
-          )}
-        </div>
-
-        {/* Scholarship Requirements */}
-        <div className="space-y-3">
-          <Label className="text-lg font-medium text-primary">What level of scholarship support do you need?</Label>
-          <p className="text-sm text-gray-600 mb-2 italic">
-            Please select your scholarship requirements:
-          </p>
-          
-          <div className="space-y-3">
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('scholarshipRequirement')}
-                value="full_scholarship"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="font-medium text-gray-800">Full scholarship needed</span>
-                <p className="text-sm text-gray-600">I require 100% financial assistance to pursue my studies</p>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('scholarshipRequirement')}
-                value="partial_scholarship"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="font-medium text-gray-800">Partial scholarship needed</span>
-                <p className="text-sm text-gray-600">I can cover some costs but require partial financial support</p>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors bg-white">
-              <input
-                type="radio"
-                {...register('scholarshipRequirement')}
-                value="scholarship_optional"
-                className="mt-0.5"
-              />
-              <div className="space-y-1">
-                <span className="font-medium text-gray-800">Scholarship optional</span>
-                <p className="text-sm text-gray-600">I can pursue my studies without scholarship support</p>
-              </div>
-            </label>
-          </div>
-          
-          {errors.scholarshipRequirement && (
-            <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
-          )}
-        </div>
-
-        {/* Communication Preferences Section */}
-        <div className="space-y-3 pt-4 border-t border-gray-200">
-          <Label className="text-lg font-medium">How Would You Like Us to Contact You?</Label>
-          <p className="text-sm text-gray-600 mb-2 italic">
-            Choose your preferred communication methods (select at least one)
-          </p>
-
-          <div className="space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-center gap-2 min-w-[140px]">
-                <input
-                  type="checkbox"
-                  id="callMethod"
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                  checked={callChecked}
-                  onChange={(e) => handleContactMethodChange('call', e.target.checked)}
-                />
-                <Label htmlFor="callMethod" className="mb-0 cursor-pointer flex items-center gap-2">
-                  <Phone className="w-4 h-4 text-gray-500" />
-                  <span>Phone Call</span>
-                </Label>
-              </div>
-              <div className="flex-1">
-                <Input
-                  {...register('contactMethods.callNumber')}
-                  disabled={!callChecked}
-                  placeholder="Enter phone number for calls"
-                  className={cn(
-                    "h-10 bg-white",
-                    !callChecked && "bg-gray-100 text-gray-500"
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-center gap-2 min-w-[140px]">
-                <input
-                  type="checkbox"
-                  id="whatsappMethod"
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                  checked={whatsappChecked}
-                  onChange={(e) => handleContactMethodChange('whatsapp', e.target.checked)}
-                />
-                <Label htmlFor="whatsappMethod" className="mb-0 cursor-pointer flex items-center gap-2">
-                  <MessageSquare className="w-4 h-4 text-gray-500" />
-                  <span>WhatsApp</span>
-                </Label>
-              </div>
-              <div className="flex-1">
-                <Input
-                  {...register('contactMethods.whatsappNumber')}
-                  disabled={!whatsappChecked}
-                  placeholder="Enter WhatsApp number" 
-                  className={cn(
-                    "h-10 bg-white",
-                    !whatsappChecked && "bg-gray-100 text-gray-500"
-                  )}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-              <div className="flex items-center gap-2 min-w-[140px]">
-                <input
-                  type="checkbox"
-                  id="emailMethod"
-                  className="rounded border-gray-300 text-primary focus:ring-primary"
-                  checked={emailChecked}
-                  onChange={(e) => handleContactMethodChange('email', e.target.checked)}
-                />
-                <Label htmlFor="emailMethod" className="mb-0 cursor-pointer flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-gray-500" />
-                  <span>Email</span>
-                </Label>
-              </div>
-              <div className="flex-1">
-                <Input
-                  {...register('contactMethods.emailAddress')}
-                  disabled={!emailChecked}
-                  placeholder="Enter email address"
-                  className={cn(
-                    "h-10 bg-white",
-                    !emailChecked && "bg-gray-100 text-gray-500"
-                  )}
-                />
-              </div>
-            </div>
-            
-            {errors.contactMethods && (
-              <p className="text-sm text-red-500 italic">Please select at least one contact method</p>
-            )}
-          </div>
-        </div>
+        {/* Communication Preferences using refactored component */}
+        <MastersContactMethods
+          register={register}
+          errors={errors}
+          callChecked={callChecked}
+          whatsappChecked={whatsappChecked}
+          emailChecked={emailChecked}
+          handleContactMethodChange={handleContactMethodChange}
+        />
       </div>
 
       <div className="flex justify-between mt-8">
