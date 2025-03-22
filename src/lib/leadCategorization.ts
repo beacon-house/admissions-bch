@@ -120,19 +120,19 @@ export const determineLeadCategory = (
   }
 
   // Luminaire Level 2 (lum-l2)
-  // Case 1: Grade 11 or 12, parent-filled form, must-have scholarship
+  // Only for Grade 11 or 12 students with IB/IGCSE curriculum
   if (
     ['11', '12'].includes(currentGrade) &&
-    formFillerType === 'parent' &&
-    mappedScholarshipRequirement === 'must_have'
+    formFillerType === 'student' &&
+    ['IB', 'IGCSE'].includes(curriculumType)
   ) {
     return 'lum-l2';
   }
 
-  // Case 2: Grade 11 or 12, student-filled form with IB/IGCSE, any scholarship requirement
+  // For Grade 11 or 12 with IB/IGCSE curriculum and parent form filler
   if (
     ['11', '12'].includes(currentGrade) &&
-    formFillerType === 'student' &&
+    formFillerType === 'parent' &&
     ['IB', 'IGCSE'].includes(curriculumType)
   ) {
     return 'lum-l2';

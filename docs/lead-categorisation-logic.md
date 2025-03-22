@@ -1,7 +1,7 @@
 # Lead Categorization Logic
 
 ## Overview
-The lead categorization system efficiently segments incoming student applications into six distinct categories: BCH (premium), Luminaire Level 1 (lum-l1), Luminaire Level 2 (lum-l2), Masters Level 1 (masters-l1), Masters Level 2 (masters-l2), NURTURE (development), and DROP (direct submission). The categorization is based on multiple factors including grade level, form filler type, academic preferences, and application preparation status.
+The lead categorization system efficiently segments incoming student applications into seven distinct categories: BCH (premium), Luminaire Level 1 (lum-l1), Luminaire Level 2 (lum-l2), Masters Level 1 (masters-l1), Masters Level 2 (masters-l2), NURTURE (development), and DROP (direct submission). The categorization is based on multiple factors including grade level, form filler type, academic preferences, and application preparation status.
 
 ## Categorization Factors
 The system evaluates the following key factors:
@@ -45,13 +45,13 @@ The system evaluates the following key factors:
 Qualifies if ANY of these conditions are met:
 1. Grade 9 or 10 students where:
    - Form filled by parents (`formFillerType` = 'parent')
-   - Scholarship requirement is 'good_to_have'
+   - Scholarship requirement is NOT 'full_scholarship'
 
 2. Grade 11 students where:
    - Either:
      - Form filled by parent (any curriculum) OR
      - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is 'good_to_have'
+   - Scholarship requirement is NOT 'full_scholarship'
    - Target university rank is 'top_20'
 
 ### 2. Luminaire Level 1 (lum-l1)
@@ -60,46 +60,55 @@ Qualifies if ANY of these conditions are met:
    - Either:
      - Form filled by parent (any curriculum) OR
      - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is 'good_to_have'
+   - Scholarship requirement is NOT 'full_scholarship'
    - Target university rank is NOT 'top_20'
 
 2. Grade 12 students where:
    - Either:
      - Form filled by parent (any curriculum) OR
      - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is 'good_to_have'
+   - Scholarship requirement is NOT 'full_scholarship'
 
 ### 3. Luminaire Level 2 (lum-l2)
-Qualifies if ANY of these conditions are met:
-1. Grade 11 or 12 students where:
-   - Form filled by parent (any curriculum)
-   - Scholarship requirement is 'must_have'
+Qualifies ONLY if ALL these conditions are met:
+1. Grade 11 or 12 students
+2. IB/IGCSE curriculum ONLY
+3. Either:
+   - Form filled by parent OR
+   - Form filled by student
 
-2. Grade 11 or 12 students where:
-   - Form filled by student (IB or IGCSE curriculum only)
-   - Scholarship requirement is either 'must_have' or 'good_to_have'
+Note: All other Grade 11 or 12 students (including those with non-IB/IGCSE curriculum or full scholarship requirements) will be categorized as NURTURE
 
 ### 4. Masters Level 1 (masters-l1)
 Qualifies if ALL these conditions are met:
 - Grade is 'masters'
-- Application preparation status is 'researching_now' OR 'taken_exams_identified_universities'
+- Application preparation status is either:
+  - 'researching_now' OR
+  - 'taken_exams_identified_universities'
 - Target universities option: 'top_20_50' (Top 20-50 ranked global university)
 
 ### 5. Masters Level 2 (masters-l2)
 Qualifies if ALL these conditions are met:
 - Grade is 'masters'
-- Application preparation status is 'researching_now' OR 'taken_exams_identified_universities'
-- Target universities option: 'top_50_100' (50-100 ranked universities) OR 'partner_university' (Partner University without GRE/GMAT)
+- Application preparation status is either:
+  - 'researching_now' OR
+  - 'taken_exams_identified_universities'
+- Target universities option is either:
+  - 'top_50_100' (50-100 ranked universities) OR
+  - 'partner_university' (Partner University without GRE/GMAT)
 
 ### 6. NURTURE Category
 Automatically assigned if ANY of these conditions are met:
 - Masters applicants who are undecided about applying ('undecided_need_help')
-- Masters applicants with target universities option: 'unsure' (unsure about university preferences)
+- Masters applicants with target universities option: 'unsure'
+- Grade 11 or 12 students with non-IB/IGCSE curriculum
+- Grade 11 or 12 students requiring full scholarship
 - Any other lead that doesn't match the above categories and isn't grade 7 or below
 
 ### 7. DROP Category
 Automatically assigned to:
 - Grade 7 or below students
+- Form is submitted directly after Step 1
 
 ## Special Processing Rules
 1. **Direct Form Submission**:
@@ -110,7 +119,7 @@ Automatically assigned to:
    - Application preparation status is the initial filter:
      - 'undecided_need_help' → NURTURE
      - Others → proceed to target university evaluation
-   - Target university preference is the primary categorization factor:
+   - Target university preference determines final category:
      - 'top_20_50' → masters-l1
      - 'top_50_100' or 'partner_university' → masters-l2
      - 'unsure' → NURTURE
