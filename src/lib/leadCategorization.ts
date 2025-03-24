@@ -1,19 +1,7 @@
 import { LeadCategory } from '@/types/form';
 
 /**
- * Maps the new scholarship requirement values to the old ones for categorization logic
- */
-const mapScholarshipRequirement = (scholarshipRequirement: string): 'must_have' | 'good_to_have' => {
-  if (scholarshipRequirement === 'full_scholarship') {
-    return 'must_have';
-  } else {
-    // Both 'partial_scholarship' and 'scholarship_optional' map to 'good_to_have'
-    return 'good_to_have';
-  }
-};
-
-/**
- * Determines the lead category based on updated categorization logic
+ * Determines the lead category based on categorization logic
  * 
  * Categories:
  * 1. BCH - High priority leads
@@ -43,8 +31,10 @@ export const determineLeadCategory = (
     return 'DROP';
   }
   
-  // Map the new scholarship requirement format to the old one for compatibility
-  const mappedScholarshipRequirement = mapScholarshipRequirement(scholarshipRequirement);
+  // Global override: Full scholarship leads go to NURTURE by default
+  if (scholarshipRequirement === 'full_scholarship') {
+    return 'NURTURE';
+  }
   
   // MASTERS category evaluation
   if (currentGrade === 'masters') {
@@ -56,7 +46,7 @@ export const determineLeadCategory = (
     
     // Only proceed with masters-l1/masters-l2 evaluation if the user is actually preparing
     if (applicationPreparation === 'researching_now' || applicationPreparation === 'taken_exams_identified_universities') {
-      // New Logic based on target universities
+      // Logic based on target universities
       if (targetUniversities === 'top_20_50') {
         return 'masters-l1';
       } else if (targetUniversities === 'top_50_100' || targetUniversities === 'partner_university') {
@@ -71,19 +61,19 @@ export const determineLeadCategory = (
   }
 
   // BCH category
-  // Case 1: Grade 9 or 10, parent-filled form, good-to-have scholarship
+  // Case 1: Grade 9 or 10, parent-filled form, scholarship not required or partial
   if (
     ['9', '10'].includes(currentGrade) &&
     formFillerType === 'parent' &&
-    mappedScholarshipRequirement === 'good_to_have'
+    (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship')
   ) {
     return 'BCH';
   }
 
-  // Case 2: Grade 11, good-to-have scholarship, top-20 target
+  // Case 2: Grade 11, parent or IB/IGCSE student, scholarship not required or partial, top-20 target
   if (
     currentGrade === '11' &&
-    mappedScholarshipRequirement === 'good_to_have' &&
+    (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship') &&
     targetUniversityRank === 'top_20' &&
     (
       formFillerType === 'parent' || 
@@ -93,51 +83,32 @@ export const determineLeadCategory = (
     return 'BCH';
   }
 
-  // Luminaire Level 1 (lum-l1)
-  // Case 1: Grade 11, good-to-have scholarship, not top-20 target
-  if (
-    currentGrade === '11' &&
-    mappedScholarshipRequirement === 'good_to_have' &&
-    targetUniversityRank !== 'top_20' &&
+  // Check for lum-l1 or lum-l2 eligibility based on school year and curriculum
+  const isEligibleForLuminaire = (
+    ['11', '12'].includes(currentGrade) &&
     (
       formFillerType === 'parent' || 
       (formFillerType === 'student' && ['IB', 'IGCSE'].includes(curriculumType))
     )
-  ) {
-    return 'lum-l1';
-  }
+  );
 
-  // Case 2: Grade 12, good-to-have scholarship
-  if (
-    currentGrade === '12' &&
-    mappedScholarshipRequirement === 'good_to_have' &&
-    (
-      formFillerType === 'parent' || 
-      (formFillerType === 'student' && ['IB', 'IGCSE'].includes(curriculumType))
-    )
-  ) {
-    return 'lum-l1';
-  }
-
-  // Luminaire Level 2 (lum-l2)
-  // Only for Grade 11 or 12 students with IB/IGCSE curriculum
-  if (
-    ['11', '12'].includes(currentGrade) &&
-    formFillerType === 'student' &&
-    ['IB', 'IGCSE'].includes(curriculumType)
-  ) {
-    return 'lum-l2';
-  }
-
-  // For Grade 11 or 12 with IB/IGCSE curriculum and parent form filler
-  if (
-    ['11', '12'].includes(currentGrade) &&
-    formFillerType === 'parent' &&
-    ['IB', 'IGCSE'].includes(curriculumType)
-  ) {
-    return 'lum-l2';
+  if (isEligibleForLuminaire) {
+    // Luminaire Level 1 (lum-l1) - scholarship_optional
+    if (scholarshipRequirement === 'scholarship_optional') {
+      // For Grade 11, must NOT have top_20 target (those go to BCH)
+      if (currentGrade === '11' && targetUniversityRank === 'top_20') {
+        // Skip since this would go to BCH (handled above)
+      } else {
+        return 'lum-l1';
+      }
+    }
+    
+    // Luminaire Level 2 (lum-l2) - partial_scholarship
+    if (scholarshipRequirement === 'partial_scholarship') {
+      return 'lum-l2';
+    }
   }
 
   // Default: NURTURE for all other cases
   return 'NURTURE';
-};
+}

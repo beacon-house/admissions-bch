@@ -39,45 +39,45 @@ The system evaluates the following key factors:
      - Intake period
      - Support level required
 
+## Global Rule (Override)
+- Any lead with `scholarship_requirement` = `full_scholarship` goes to NURTURE category BY DEFAULT, regardless of any other criteria
+
 ## Categories and Qualification Criteria
 
 ### 1. BCH (Premium Category)
 Qualifies if ANY of these conditions are met:
 1. Grade 9 or 10 students where:
    - Form filled by parents (`formFillerType` = 'parent')
-   - Scholarship requirement is NOT 'full_scholarship'
+   - Scholarship requirement is NOT 'full_scholarship' (either 'scholarship_optional' or 'partial_scholarship')
 
 2. Grade 11 students where:
    - Either:
      - Form filled by parent (any curriculum) OR
      - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is NOT 'full_scholarship'
+   - Scholarship requirement is NOT 'full_scholarship' (either 'scholarship_optional' or 'partial_scholarship')
    - Target university rank is 'top_20'
 
 ### 2. Luminaire Level 1 (lum-l1)
-Qualifies if ANY of these conditions are met:
-1. Grade 11 students where:
-   - Either:
-     - Form filled by parent (any curriculum) OR
-     - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is NOT 'full_scholarship'
-   - Target university rank is NOT 'top_20'
-
-2. Grade 12 students where:
-   - Either:
-     - Form filled by parent (any curriculum) OR
-     - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is NOT 'full_scholarship'
+Qualifies if ALL of these conditions are met:
+1. Scholarship requirement is 'scholarship_optional'
+2. And meets one of these criteria:
+   - Grade 11 students where:
+     - Either:
+       - Form filled by parent (any curriculum) OR
+       - Form filled by student with IB/IGCSE curriculum only
+     - Target university rank is NOT 'top_20' (this is critical as top_20 Grade 11 students go to BCH)
+   - Grade 12 students where:
+     - Either:
+       - Form filled by parent (any curriculum) OR
+       - Form filled by student with IB/IGCSE curriculum only
 
 ### 3. Luminaire Level 2 (lum-l2)
-Qualifies ONLY if ALL these conditions are met:
-1. Grade 11 or 12 students
-2. IB/IGCSE curriculum ONLY
+Qualifies if ALL of these conditions are met:
+1. Scholarship requirement is 'partial_scholarship'
+2. Grade 11 or 12 students
 3. Either:
-   - Form filled by parent OR
-   - Form filled by student
-
-Note: All other Grade 11 or 12 students (including those with non-IB/IGCSE curriculum or full scholarship requirements) will be categorized as NURTURE
+   - Form filled by parent (any curriculum) OR
+   - Form filled by student with IB/IGCSE curriculum only
 
 ### 4. Masters Level 1 (masters-l1)
 Qualifies if ALL these conditions are met:
@@ -99,10 +99,10 @@ Qualifies if ALL these conditions are met:
 
 ### 6. NURTURE Category
 Automatically assigned if ANY of these conditions are met:
+- Scholarship requirement is 'full_scholarship' (overrides all other criteria)
 - Masters applicants who are undecided about applying ('undecided_need_help')
 - Masters applicants with target universities option: 'unsure'
 - Grade 11 or 12 students with non-IB/IGCSE curriculum
-- Grade 11 or 12 students requiring full scholarship
 - Any other lead that doesn't match the above categories and isn't grade 7 or below
 
 ### 7. DROP Category
