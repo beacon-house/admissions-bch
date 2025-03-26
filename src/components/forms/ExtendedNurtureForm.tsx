@@ -604,7 +604,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
           type="submit"
           className="bg-accent text-primary h-14 px-8 rounded-lg text-base font-semibold hover:bg-accent-light transition-all duration-300 shadow-md hover:shadow-lg flex items-center space-x-2"
         >
-          <span>Proceed to Booking</span>
+          <span>Proceed</span>
           <ChevronRight className="w-5 h-5" />
         </button>
       </div>

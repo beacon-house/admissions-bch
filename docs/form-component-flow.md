@@ -8,7 +8,6 @@ The form has these main components:
 - **Step 1**: Personal Details Form
 - **Step 2A**: Academic Details Form (for grades 8-12)
 - **Step 2B**: Masters Academic Details Form (for Masters applicants)
-- **Step 2.5**: Extended Nurture Form (for NURTURE category leads)
 - **Step 3**: Counselling Form (schedules a session with appropriate counselor)
 
 ## 2. Form Questions by Component
@@ -69,29 +68,6 @@ The form has these main components:
 | Scholarship Requirement | Radio | Required | Full scholarship needed, Partial scholarship needed, Scholarship optional |
 | Contact Methods | Same as Step 2A | | |
 
-### Step 2.5: Extended Nurture Form
-
-This step appears only for leads categorized as NURTURE after Step 2.
-
-#### Common Questions (Both Parent and Student)
-| Field | Type | Validation | Options |
-|-------|------|------------|---------|
-| Which steps have you already taken? | Checkbox Group | Min 1 required | Researched universities, Taken/registered for standardized tests, Participated in extracurricular activities, Started application materials, Connected with students/alumni, None of these yet |
-| Grade-specific question | Radio | Required | Options vary based on grade |
-| Target Universities | Text | Required | Free text for specific universities |
-
-#### Student-Specific Questions
-| Field | Type | Validation | Options |
-|-------|------|------------|---------|
-| Parental Support | Radio | Required | Would join, Supportive but limited availability, Handle independently, Not discussed in detail |
-| Partial Funding Approach | Radio | Required | Accept and cover remaining, Defer for external scholarships, Consider alternatives, Only full funding |
-
-#### Parent-Specific Questions
-| Field | Type | Validation | Options |
-|-------|------|------------|---------|
-| Financial Planning | Radio | Required | Savings, Education loans, External scholarships, Liquidate investments, No specific plans |
-| Resource Investment | Checkbox Group | Min 1 required | Academic support, Extracurricular development, Test preparation, University visits, Dedicated time, Limited investment |
-
 ### Step 3: Counselling Form
 
 | Field | Type | Validation | Options |
@@ -109,12 +85,11 @@ This step appears only for leads categorized as NURTURE after Step 2.
    - Otherwise: User proceeds to Academic Details Form (Step 2A)
 3. After completing Step 2:
    - System determines lead category
-   - If category is "NURTURE": User sees nurture evaluation animation and proceeds to Extended Nurture Form (Step 2.5)
-   - Otherwise: User sees evaluation animation and proceeds to Counselling Form (Step 3)
-4. After completing Step 2.5 (Extended Nurture) or Step 3 (Counselling), form is submitted with all data
+   - User sees evaluation animation and proceeds to Counselling Form (Step 3)
+4. After completing Step 3, form is submitted with all data
 
 ### Progress Indicators
-- Progress bar at the top shows 25% for Step 1, 50% for Step 2, 75% for Step 2.5, 100% for Step 3
+- Progress bar at the top shows 33% for Step 1, 66% for Step 2, 100% for Step 3
 - Current step is highlighted
 - Mobile navigation adapts to smaller screens
 
@@ -135,16 +110,7 @@ This step appears only for leads categorized as NURTURE after Step 2.
   - Validates all fields
   - If valid: Updates form store with data
   - Determines lead category
-  - For NURTURE category: Shows nurture evaluation animation and advances to Step 2.5
-  - Otherwise: Shows evaluation animation and advances to Step 3
-
-### Step 2.5: Extended Nurture Form
-- **Previous Button**:
-  - Returns to Step 2
-- **Proceed to Booking Button**:
-  - Validates all fields
-  - If valid: Updates form store with extended nurture data
-  - Advances to Step 3
+  - Shows evaluation animation and advances to Step 3
 
 ### Step 3: Counselling Form
 - **Submit Application Button**:
@@ -152,42 +118,30 @@ This step appears only for leads categorized as NURTURE after Step 2.
   - Submits complete form data via webhook
   - Shows success message
 
-### Evaluation Animations
-- **Regular Evaluation Animation**: 
-  - Triggered after Step 2 for non-NURTURE leads
-  - Shows analysis animation for 10 seconds
-  - Automatically advances to Step 3 after completion
-
-- **Nurture Evaluation Animation**:
-  - Triggered after Step 2 for NURTURE leads
-  - Shows different analysis messages focused on scholarship opportunities
-  - Automatically advances to Step 2.5 after completion
+### Evaluation Animation
+- Triggered after Step 2 for leads
+- Shows analysis animation for 10 seconds
+- Automatically advances to Step 3 after completion
 
 ## 5. Special Cases and Conditional Logic
 
 ### Grade 7 or Below
 - Form submits directly after Step 1
 - Category set to "DROP"
-- No Step 2, 2.5 or 3 presented
+- No Step 2 or 3 presented
 
 ### Masters Applications
 - Different form questions in Step 2
 - Application preparation status determines initial filtering:
-  - "undecided_need_help" → NURTURE (goes to Extended Nurture Form)
+  - "undecided_need_help" → NURTURE 
   - Otherwise → proceed based on target university evaluation
 - Target universities determine category:
   - "top_20_50" → masters-l1
   - "top_50_100" or "partner_university" → masters-l2
   - "unsure" → NURTURE
 
-### NURTURE Categorization
-- Any application with "full_scholarship" selected goes to NURTURE category
-- NURTURE leads now go through Extended Nurture Form (Step 2.5) instead of direct submission
-- Extended form questions differ based on form filler type (parent or student)
-
 ### Full Scholarship Requirement
 - Any application with "full_scholarship" selected goes to NURTURE category
-- Form continues to Extended Nurture form after Step 2
 
 ### Counselor Assignment in Step 3
 - Based on lead category:
@@ -217,13 +171,29 @@ This step appears only for leads categorized as NURTURE after Step 2.
 - Tracks total time spent and step completion
 - Sends analytics events to Google Analytics and Meta Pixel
 
-### Pixel Events
-- Key form events tracked:
-  - `admissions_cta_header_[environment]` - Header CTA clicks
-  - `admissions_cta_hero_[environment]` - Hero section CTA clicks
-  - `admissions_page1_continue_[environment]` - Step 1 completion
-  - `admissions_page2_next_regular_[environment]` - Step 2 completion (non-masters)
-  - `admissions_page2_next_masters_[environment]` - Step 2 completion (masters)
-  - `admissions_page2_previous_[environment]` - Going back from Step 2 to Step 1
-  - `admissions_page_view_[environment]` - Form page views
-  - `admissions_form_complete_[environment]` - Form completion
+## 7. Meta Pixel Event Architecture
+
+The following events are implemented in the application:
+
+### CTA Buttons:
+- `admissions_cta_header_[environment]`: Triggered on header CTA click
+- `admissions_cta_hero_[environment]`: Triggered on hero section CTA click
+
+### Form Navigation:
+- `admissions_page1_continue_[environment]`: Triggered on Step 1 completion
+- `admissions_page2_next_regular_[environment]`: Triggered on Step 2 completion (non-masters)
+- `admissions_page2_next_masters_[environment]`: Triggered on Step 2 completion (masters)
+- `admissions_page_view_[environment]`: Triggered on form page views
+- `admissions_form_complete_[environment]`: Triggered on form completion
+
+### Extended Nurture Events:
+- `admissions_page25_proceed_nurture_success_[environment]`: Triggered when proceeding from Extended Nurture Form to counselling booking
+
+### Counselling Form Events:
+- `admissions_page3_submit_[lead_category]_[environment]`: Triggered when lead submits counselling form
+
+### Complete Flow Events:
+- `admissions_flow_complete_bch_[environment]`: Triggered when a BCH lead completes entire form flow
+- `admissions_flow_complete_luminaire_[environment]`: Triggered when a Luminaire lead (l1 or l2) completes flow
+- `admissions_flow_complete_masters_[environment]`: Triggered when a Masters lead completes flow
+- `admissions_flow_complete_nurture_success_[environment]`: Triggered when nurture-success lead completes flow

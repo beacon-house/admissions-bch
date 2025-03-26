@@ -8,7 +8,7 @@ import { CounsellingForm } from './CounsellingForm';
 import { SequentialLoadingAnimation } from '../ui/SequentialLoadingAnimation';
 import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
-import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
+import { trackPixelEvent, PIXEL_EVENTS, getCommonEventProperties } from '@/lib/pixel';
 import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
 import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
@@ -44,7 +44,13 @@ export default function FormContainer() {
       
       trackPixelEvent({
         name: PIXEL_EVENTS.FORM_PAGE1,
-        options: { grade: data.currentGrade }
+        options: { 
+          grade: data.currentGrade,
+          form_filler_type: data.formFillerType,
+          // Add timing data
+          time_spent: Math.floor((Date.now() - startTime) / 1000),
+          time_of_day: new Date().getHours()
+        }
       });
       trackFormStepComplete(1);
       
@@ -60,6 +66,17 @@ export default function FormContainer() {
         );
         // Update form data with lead category
         updateFormData({ lead_category: leadCategory });
+        
+        // Track flow completion for DROP category
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_DROP,
+          options: {
+            total_time_spent: Math.floor((Date.now() - startTime) / 1000),
+            current_grade: data.currentGrade,
+            form_filler_type: data.formFillerType
+          }
+        });
+        
         // Submit form with lead category
         await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true);
         setSubmitting(false);
@@ -131,12 +148,20 @@ export default function FormContainer() {
       if (formData.currentGrade === 'masters') {
         trackPixelEvent({
           name: PIXEL_EVENTS.FORM_PAGE2_NEXT_MASTERS,
-          options: { lead_category: leadCategory }
+          options: { 
+            lead_category: leadCategory,
+            time_spent: Math.floor((Date.now() - startTime) / 1000),
+            ...getCommonEventProperties(finalData)
+          }
         });
       } else {
         trackPixelEvent({
           name: PIXEL_EVENTS.FORM_PAGE2_NEXT_REGULAR,
-          options: { lead_category: leadCategory }
+          options: { 
+            lead_category: leadCategory,
+            time_spent: Math.floor((Date.now() - startTime) / 1000),
+            ...getCommonEventProperties(finalData)
+          }
         });
       }
       
@@ -153,6 +178,18 @@ export default function FormContainer() {
           setSubmitting(false);
           // Go to the extended nurture form (Step 2.5)
           setStep(2.5);
+          
+          // Track view event for Extended Nurture Form
+          trackPixelEvent({
+            name: PIXEL_EVENTS.PAGE25_VIEW,
+            options: {
+              lead_category: leadCategory,
+              form_filler_type: formData.formFillerType,
+              current_grade: formData.currentGrade,
+              scholarship_requirement: finalData.scholarshipRequirement
+            }
+          });
+          
         }, 10000); // 10 seconds for evaluation animation
       } else {
         // For non-NURTURE leads, show the standard evaluation animation
@@ -183,23 +220,33 @@ export default function FormContainer() {
       
       // Determine if this nurture lead qualifies for booking
       let qualifiesForBooking = false;
+      let disqualificationReason = '';
       
       if (formData.formFillerType === 'parent') {
-        // For parent form fillers:
-        // 1. Check if they selected any funding option other than "only proceed with full funding"
-        // 2. Check if they didn't select "Aiming for minimal profile-building activities, prioritizing academics instead"
-        qualifiesForBooking = 
-          data.financialPlanning !== 'no_specific_plans' && 
-          data.gradeSpecificQuestion !== 'academics_focus';
+        // For parent form fillers
+        if (data.financialPlanning === 'no_specific_plans') {
+          disqualificationReason = 'no_financial_planning';
+          qualifiesForBooking = false;
+        } else if (data.gradeSpecificQuestion === 'academics_focus') {
+          disqualificationReason = 'academics_only_focus';
+          qualifiesForBooking = false;
+        } else {
+          qualifiesForBooking = true;
+        }
       } else {
-        // For student form fillers:
-        // 1. Check if they selected "Yes, they would join" for parental support
-        // 2. Check if they selected any funding approach other than "Would only proceed with full funding"
-        // 3. Check if they didn't select "Aiming for minimal profile-building activities, prioritizing academics instead"
-        qualifiesForBooking = 
-          data.parentalSupport === 'would_join' && 
-          data.partialFundingApproach !== 'only_full_funding' && 
-          data.gradeSpecificQuestion !== 'academics_focus';
+        // For student form fillers
+        if (data.parentalSupport !== 'would_join') {
+          disqualificationReason = 'no_parent_participation';
+          qualifiesForBooking = false;
+        } else if (data.partialFundingApproach === 'only_full_funding') {
+          disqualificationReason = 'only_full_funding';
+          qualifiesForBooking = false;
+        } else if (data.gradeSpecificQuestion === 'academics_focus') {
+          disqualificationReason = 'academics_only_focus';
+          qualifiesForBooking = false;
+        } else {
+          qualifiesForBooking = true;
+        }
       }
       
       // Set nurture subcategory
@@ -208,20 +255,67 @@ export default function FormContainer() {
       
       // Update form data with extended nurture responses and subcategory
       updateFormData({ 
+        lead_category: subcategory, // Update main lead_category with subcategory
         extendedNurture: {
           ...data,
           nurtureSubcategory: subcategory
         }
       });
       
-      // If the lead qualifies for booking, proceed to counselling form
+      // Track appropriate event based on qualification
       if (qualifiesForBooking) {
+        // Track nurture-success event
+        trackPixelEvent({
+          name: PIXEL_EVENTS.PAGE25_PROCEED_SUCCESS,
+          options: {
+            form_filler_type: formData.formFillerType,
+            current_grade: formData.currentGrade,
+            nurture_subcategory: 'nurture-success',
+            time_spent: Math.floor((Date.now() - startTime) / 1000)
+          }
+        });
+        
+        // Proceed to counselling form
         setStep(3);
+        
+        // Track page3 view event with lead category
+        trackPixelEvent({
+          name: PIXEL_EVENTS.getPage3ViewEvent('nurture-success'),
+          options: {
+            lead_category: 'nurture-success',
+            form_filler_type: formData.formFillerType,
+            current_grade: formData.currentGrade
+          }
+        });
       } else {
+        // Track nurture-no-booking event
+        trackPixelEvent({
+          name: PIXEL_EVENTS.PAGE25_PROCEED_NO_BOOKING,
+          options: {
+            form_filler_type: formData.formFillerType,
+            current_grade: formData.currentGrade,
+            nurture_subcategory: 'nurture-no-booking',
+            disqualification_reason: disqualificationReason,
+            time_spent: Math.floor((Date.now() - startTime) / 1000)
+          }
+        });
+        
+        // Track flow completion for nurture-no-booking
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_NURTURE_NO_BOOKING,
+          options: {
+            form_filler_type: formData.formFillerType,
+            disqualification_reason: disqualificationReason,
+            total_time_spent: Math.floor((Date.now() - startTime) / 1000),
+            current_grade: formData.currentGrade
+          }
+        });
+        
         // If the lead doesn't qualify, submit the form directly
         setSubmitting(true);
         submitFormData({
           ...formData,
+          lead_category: subcategory, // Update lead_category for webhook submission
           extendedNurture: {
             ...data,
             nurtureSubcategory: subcategory
@@ -249,15 +343,77 @@ export default function FormContainer() {
         }
       };
       
+      // Track page3 submit event with lead category
+      trackPixelEvent({
+        name: PIXEL_EVENTS.getPage3SubmitEvent(formData.lead_category || 'unknown'),
+        options: {
+          counselling_slot_picked: Boolean(data.selectedDate && data.selectedSlot),
+          total_time_spent: Math.floor((Date.now() - startTime) / 1000),
+          counsellor_name: formData.lead_category === 'BCH' ? 'Viswanathan' : 'Karthik Lakshman',
+          lead_category: formData.lead_category
+        }
+      });
+      
+      // Track form completion
       trackPixelEvent({
         name: PIXEL_EVENTS.FORM_COMPLETE,
         options: { 
           lead_category: formData.lead_category,
           counselling_booked: Boolean(data.selectedDate && data.selectedSlot),
           is_masters: formData.currentGrade === 'masters',
-          extended_form_completed: formData.lead_category === 'NURTURE'
+          extended_form_completed: formData.lead_category === 'NURTURE',
+          total_time_spent: Math.floor((Date.now() - startTime) / 1000)
         }
       });
+      
+      // Track specific flow completion events based on lead category
+      const totalTimeSpent = Math.floor((Date.now() - startTime) / 1000);
+      const counsellingBooked = Boolean(data.selectedDate && data.selectedSlot);
+      
+      if (formData.lead_category === 'BCH') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_BCH,
+          options: {
+            total_time_spent: totalTimeSpent,
+            counselling_booked: counsellingBooked,
+            current_grade: formData.currentGrade,
+            form_filler_type: formData.formFillerType,
+            curriculum_type: formData.curriculumType
+          }
+        });
+      } else if (formData.lead_category && formData.lead_category.startsWith('lum')) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_LUMINAIRE,
+          options: {
+            luminaire_level: formData.lead_category.replace('lum-', ''),
+            total_time_spent: totalTimeSpent,
+            counselling_booked: counsellingBooked,
+            current_grade: formData.currentGrade,
+            form_filler_type: formData.formFillerType
+          }
+        });
+      } else if (formData.lead_category && formData.lead_category.startsWith('masters')) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_MASTERS,
+          options: {
+            masters_level: formData.lead_category.replace('masters-', ''),
+            total_time_spent: totalTimeSpent,
+            counselling_booked: counsellingBooked,
+            application_preparation: formData.applicationPreparation
+          }
+        });
+      } else if (formData.lead_category === 'nurture-success') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FLOW_COMPLETE_NURTURE_SUCCESS,
+          options: {
+            form_filler_type: formData.formFillerType,
+            total_time_spent: totalTimeSpent,
+            counselling_booked: counsellingBooked,
+            current_grade: formData.currentGrade,
+            disqualification_factors: 'none'
+          }
+        });
+      }
       
       // Submit all form data including counselling details
       await submitFormData(finalData, 3, startTime, true);
@@ -279,6 +435,18 @@ export default function FormContainer() {
     setSubmitting(false);
     setStep(3);
     trackFormStepComplete(2);
+    
+    // Track page3 view event with lead category
+    if (formData.lead_category) {
+      trackPixelEvent({
+        name: PIXEL_EVENTS.getPage3ViewEvent(formData.lead_category),
+        options: {
+          lead_category: formData.lead_category,
+          form_filler_type: formData.formFillerType,
+          current_grade: formData.currentGrade
+        }
+      });
+    }
   };
 
   const getStepProgress = () => {
@@ -295,7 +463,11 @@ export default function FormContainer() {
     // Track page view when component mounts or step changes
     trackPixelEvent({
       name: PIXEL_EVENTS.FORM_PAGE_VIEW,
-      options: { step: currentStep }
+      options: { 
+        step: currentStep,
+        current_grade: formData.currentGrade,
+        form_filler_type: formData.formFillerType
+      }
     });
     
     trackFormView();
@@ -303,9 +475,49 @@ export default function FormContainer() {
     return () => {
       if (!isSubmitted) {
         trackFormAbandonment(currentStep, startTime);
+        
+        // Track abandonment event based on current step
+        const options = {
+          time_spent: Math.floor((Date.now() - startTime) / 1000),
+          form_filler_type: formData.formFillerType,
+          current_grade: formData.currentGrade
+        };
+        
+        switch (currentStep) {
+          case 1:
+            trackPixelEvent({
+              name: PIXEL_EVENTS.FORM_ABANDONMENT_STEP1,
+              options
+            });
+            break;
+          case 2:
+            trackPixelEvent({
+              name: PIXEL_EVENTS.FORM_ABANDONMENT_STEP2,
+              options: {
+                ...options,
+                form_type: formData.currentGrade === 'masters' ? 'masters' : 'regular'
+              }
+            });
+            break;
+          case 2.5:
+            trackPixelEvent({
+              name: PIXEL_EVENTS.FORM_ABANDONMENT_STEP25,
+              options
+            });
+            break;
+          case 3:
+            trackPixelEvent({
+              name: PIXEL_EVENTS.FORM_ABANDONMENT_STEP3,
+              options: {
+                ...options,
+                lead_category: formData.lead_category
+              }
+            });
+            break;
+        }
       }
     };
-  }, [currentStep, isSubmitted, startTime]);
+  }, [currentStep, isSubmitted, startTime, formData]);
 
   // Evaluation steps for regular evaluation animation
   const evaluationSteps = [
@@ -406,6 +618,16 @@ export default function FormContainer() {
             setShowNurtureAnimation(false);
             setSubmitting(false);
             setStep(2.5);
+            
+            // Track view event for Extended Nurture Form
+            trackPixelEvent({
+              name: PIXEL_EVENTS.PAGE25_VIEW,
+              options: {
+                lead_category: 'NURTURE',
+                form_filler_type: formData.formFillerType,
+                current_grade: formData.currentGrade
+              }
+            });
           }}
         />
       )}
@@ -428,7 +650,11 @@ export default function FormContainer() {
               onBack={() => {
                 trackPixelEvent({
                   name: PIXEL_EVENTS.FORM_PAGE2_PREVIOUS,
-                  options: { form_type: 'masters' }
+                  options: { 
+                    form_type: 'masters',
+                    current_grade: formData.currentGrade,
+                    form_filler_type: formData.formFillerType
+                  }
                 });
                 setStep(1);
               }}
@@ -442,7 +668,11 @@ export default function FormContainer() {
               onBack={() => {
                 trackPixelEvent({
                   name: PIXEL_EVENTS.FORM_PAGE2_PREVIOUS,
-                  options: { form_type: 'regular' }
+                  options: { 
+                    form_type: 'regular',
+                    current_grade: formData.currentGrade,
+                    form_filler_type: formData.formFillerType
+                  }
                 });
                 setStep(1);
               }}
@@ -453,7 +683,18 @@ export default function FormContainer() {
           {currentStep === 2.5 && (
             <ExtendedNurtureForm
               onSubmit={onSubmitExtendedNurture}
-              onBack={() => setStep(2)}
+              onBack={() => {
+                // Track previous button click on extended nurture form
+                trackPixelEvent({
+                  name: PIXEL_EVENTS.PAGE25_PREVIOUS,
+                  options: {
+                    form_filler_type: formData.formFillerType,
+                    step_completed: "2",
+                    current_grade: formData.currentGrade
+                  }
+                });
+                setStep(2);
+              }}
               defaultValues={formData.extendedNurture}
               currentGrade={formData.currentGrade}
               formFillerType={formData.formFillerType}

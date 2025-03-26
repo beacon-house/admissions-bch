@@ -6,6 +6,7 @@ import { Calendar, Award, ChevronRight, Clock, Linkedin } from 'lucide-react';
 import { Label } from '../ui/label';
 import { LeadCategory } from '@/types/form';
 import { cn } from '@/lib/utils';
+import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
 
 // Step 3: Counselling Booking Schema
 const counsellingSchema = z.object({
@@ -66,7 +67,19 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     
     // Default to selecting today
     setSelectedDate(today);
-  }, []);
+    
+    // Track counselling form view when component mounts
+    if (leadCategory) {
+      trackPixelEvent({
+        name: PIXEL_EVENTS.getPage3ViewEvent(leadCategory),
+        options: {
+          lead_category: leadCategory,
+          counsellor_name: counselorName,
+          form_loaded_timestamp: new Date().toISOString()
+        }
+      });
+    }
+  }, [leadCategory, counselorName]);
 
   // Generate available time slots (10 AM to 8 PM, except 2-3 PM)
   // Filter out slots that are less than 2 hours from current time
@@ -106,6 +119,18 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     if (date <= maxSelectableDate) {
       setSelectedDate(date);
       setSelectedTimeSlot(null); // Reset time slot when date changes
+      
+      // Track date selection event
+      if (leadCategory) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.getPage3DateSelectEvent(leadCategory),
+          options: {
+            lead_category: leadCategory,
+            counsellor_name: counselorName,
+            selected_date: date.toISOString().split('T')[0]
+          }
+        });
+      }
     }
   };
 
@@ -121,6 +146,18 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
       });
       setValue('selectedDate', formattedDate);
       setValue('selectedSlot', slot);
+      
+      // Track time slot selection event
+      if (leadCategory) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.getPage3TimeSelectEvent(leadCategory),
+          options: {
+            lead_category: leadCategory,
+            date_selected: formattedDate,
+            time_selected: slot
+          }
+        });
+      }
     }
   };
 

@@ -16,7 +16,12 @@ export function Header({ onEvaluation, showCTA = true }: HeaderProps) {
   const handleCTAClick = () => {
     trackPixelEvent({
       name: PIXEL_EVENTS.CTA_HEADER,
-      options: { button: 'header_request_evaluation' }
+      options: { 
+        button: 'header_request_evaluation',
+        device_type: isMobile ? 'mobile' : 'desktop',
+        path: window.location.pathname,
+        timestamp: new Date().toISOString()
+      }
     });
     
     if (onEvaluation) {
