@@ -111,6 +111,24 @@ export const submitFormData = async (
       supportLevel: data.supportLevel
     }),
     
+    // Extended nurture form data
+    ...(data.extendedNurture && {
+      // Student-specific fields
+      parentalSupport: data.extendedNurture.parentalSupport,
+      partialFundingApproach: data.extendedNurture.partialFundingApproach,
+      
+      // Parent-specific fields
+      financialPlanning: data.extendedNurture.financialPlanning,
+      resourceInvestment: data.extendedNurture.resourceInvestment,
+      
+      // Common fields
+      nurtureStepsTaken: data.extendedNurture.stepsTaken,
+      gradeSpecificAnswer: data.extendedNurture.gradeSpecificQuestion,
+      targetUniversitiesList: data.extendedNurture.targetUniversities,
+      nurtureSubcategory: data.extendedNurture.nurtureSubcategory,
+      extendedFormCompleted: true
+    }),
+    
     // Lead categorization
     lead_category: data.lead_category,
     

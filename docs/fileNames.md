@@ -55,6 +55,14 @@ This is a React-based landing page and lead generation system for Beacon House, 
    - `FormContainer.tsx`: Main form orchestration and submission logic
    - `PersonalDetailsForm.tsx`: Step 1 of form
    - `AcademicDetailsForm.tsx`: Step 2 of form with academic and investment details
+   - `MastersAcademicDetailsForm.tsx`: Step 2 for masters applicants
+   - `ExtendedNurtureForm.tsx`: Step 2.5 for NURTURE category leads
+   - Masters subcomponents in `/forms/masters/`:
+     - `MastersBasicDetails.tsx`: University and program information section
+     - `MastersAcademicInfo.tsx`: Academic details section
+     - `MastersApplicationPrep.tsx`: Application preparation section
+     - `MastersContactMethods.tsx`: Contact preferences section
+     - `MastersScholarship.tsx`: Scholarship requirements section
    - Dependencies: React Hook Form, Zod, form store
 
 2. UI Components (`/ui`)
@@ -64,10 +72,12 @@ This is a React-based landing page and lead generation system for Beacon House, 
    - `select.tsx`: Select dropdown component
    - `toast.tsx`: Toast notification system
    - `card.tsx`: Card component for structured content
+   - `SequentialLoadingAnimation.tsx`: Animation for form evaluation steps
 
 3. Page Components
    - `Header.tsx`: Navigation and branding
    - `LandingPage.tsx`: Main landing page content
+   - `FormPage.tsx`: Form page container
    - `NotFound.tsx`: 404 error page
 
 #### State Management (`/src/store`)
@@ -91,11 +101,12 @@ This is a React-based landing page and lead generation system for Beacon House, 
    - `index.ts`: Common type definitions
 
 2. `/src/schemas`
-   - `form.ts`: Zod validation schemas
+   - `form.ts`: Zod validation schemas for all form steps including extended nurture form
 
 ### Documentation (`/docs`)
 - `fileNames.md`: Project structure documentation
-- `database-schema.md`: Database schema documentation
+- `form-component-flow.md`: Form component flow documentation
+- `form-fields-webhook.md`: Form fields to webhook mapping documentation
 - `lead-categorisation-logic.md`: Lead categorization rules
 
 ## Build Process
@@ -119,12 +130,21 @@ This is a React-based landing page and lead generation system for Beacon House, 
 ## Important Notes
 1. Analytics Integration
    - Google Analytics for event tracking
-   - Meta Pixel for conversion tracking with environment-specific events
+   - Meta Pixel for conversion tracking with environment-specific events:
+     - `admissions_cta_header_[environment]` - Header CTA clicks
+     - `admissions_cta_hero_[environment]` - Hero section CTA clicks
+     - `admissions_page1_continue_[environment]` - Step 1 completion
+     - `admissions_page2_next_regular_[environment]` - Step 2 completion (non-masters)
+     - `admissions_page2_next_masters_[environment]` - Step 2 completion (masters)
+     - `admissions_page2_previous_[environment]` - Going back from Step 2 to Step 1
+     - `admissions_page_view_[environment]` - Form page views
+     - `admissions_form_complete_[environment]` - Form completion
    - Hotjar for user behavior analysis
 
 2. Form Implementation
    - Multi-step form with validation
    - Advanced lead categorization system
+   - Extended nurture form for NURTURE category leads
    - Webhook-based submission
    - Progress tracking
    - Mobile-optimized layout with sticky CTA

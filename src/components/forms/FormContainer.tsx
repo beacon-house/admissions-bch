@@ -3,6 +3,7 @@ import { Progress } from '../ui/progress';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
 import { AcademicDetailsForm } from './AcademicDetailsForm';
 import { MastersAcademicDetailsForm } from './MastersAcademicDetailsForm';
+import { ExtendedNurtureForm } from './ExtendedNurtureForm';
 import { CounsellingForm } from './CounsellingForm';
 import { SequentialLoadingAnimation } from '../ui/SequentialLoadingAnimation';
 import { useFormStore } from '@/store/formStore';
@@ -11,6 +12,8 @@ import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
 import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
 import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
+import { ExtendedNurtureData } from './ExtendedNurtureForm';
+import { NurtureSubcategory } from '@/types/form';
 
 export default function FormContainer() {
   const {
@@ -29,8 +32,10 @@ export default function FormContainer() {
 
   // State for the evaluation interstitial
   const [showEvaluationAnimation, setShowEvaluationAnimation] = useState(false);
+  const [showNurtureAnimation, setShowNurtureAnimation] = useState(false);
   const [evaluatedLeadCategory, setEvaluatedLeadCategory] = useState<string | null>(null);
   const [compactForm, setCompactForm] = useState(false);
+  const [nurtureSubcategory, setNurtureSubcategory] = useState<NurtureSubcategory | null>(null);
 
   const onSubmitStep1 = async (data: any) => {
     try {
@@ -122,23 +127,35 @@ export default function FormContainer() {
         lead_category: leadCategory 
       });
       
-      trackPixelEvent({
-        name: PIXEL_EVENTS.FORM_PAGE2,
-        options: { 
-          lead_category: leadCategory,
-          is_masters: formData.currentGrade === 'masters'
-        }
-      });
+      // Track the appropriate event based on form type
+      if (formData.currentGrade === 'masters') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FORM_PAGE2_NEXT_MASTERS,
+          options: { lead_category: leadCategory }
+        });
+      } else {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.FORM_PAGE2_NEXT_REGULAR,
+          options: { lead_category: leadCategory }
+        });
+      }
       
       // Different flows based on lead category
       if (leadCategory === 'NURTURE') {
-        // For NURTURE leads, submit directly
+        // For NURTURE leads, we now show an extended form instead of submitting directly
+        window.scrollTo(0, 0);
+        // Show nurture-specific evaluation animation
         setSubmitting(true);
-        await submitFormData({ ...finalData, lead_category: leadCategory }, 2, startTime, true);
-        setSubmitting(false);
-        setSubmitted(true);
+        setShowNurtureAnimation(true);
+        
+        setTimeout(() => {
+          setShowNurtureAnimation(false);
+          setSubmitting(false);
+          // Go to the extended nurture form (Step 2.5)
+          setStep(2.5);
+        }, 10000); // 10 seconds for evaluation animation
       } else {
-        // For non-NURTURE leads, show evaluation animation
+        // For non-NURTURE leads, show the standard evaluation animation
         window.scrollTo(0, 0);
         setSubmitting(true);
         setShowEvaluationAnimation(true);
@@ -160,6 +177,65 @@ export default function FormContainer() {
     }
   };
 
+  const onSubmitExtendedNurture = (data: ExtendedNurtureData) => {
+    try {
+      window.scrollTo(0, 0);
+      
+      // Determine if this nurture lead qualifies for booking
+      let qualifiesForBooking = false;
+      
+      if (formData.formFillerType === 'parent') {
+        // For parent form fillers:
+        // 1. Check if they selected any funding option other than "only proceed with full funding"
+        // 2. Check if they didn't select "Aiming for minimal profile-building activities, prioritizing academics instead"
+        qualifiesForBooking = 
+          data.financialPlanning !== 'no_specific_plans' && 
+          data.gradeSpecificQuestion !== 'academics_focus';
+      } else {
+        // For student form fillers:
+        // 1. Check if they selected "Yes, they would join" for parental support
+        // 2. Check if they selected any funding approach other than "Would only proceed with full funding"
+        // 3. Check if they didn't select "Aiming for minimal profile-building activities, prioritizing academics instead"
+        qualifiesForBooking = 
+          data.parentalSupport === 'would_join' && 
+          data.partialFundingApproach !== 'only_full_funding' && 
+          data.gradeSpecificQuestion !== 'academics_focus';
+      }
+      
+      // Set nurture subcategory
+      const subcategory: NurtureSubcategory = qualifiesForBooking ? 'nurture-success' : 'nurture-no-booking';
+      setNurtureSubcategory(subcategory);
+      
+      // Update form data with extended nurture responses and subcategory
+      updateFormData({ 
+        extendedNurture: {
+          ...data,
+          nurtureSubcategory: subcategory
+        }
+      });
+      
+      // If the lead qualifies for booking, proceed to counselling form
+      if (qualifiesForBooking) {
+        setStep(3);
+      } else {
+        // If the lead doesn't qualify, submit the form directly
+        setSubmitting(true);
+        submitFormData({
+          ...formData,
+          extendedNurture: {
+            ...data,
+            nurtureSubcategory: subcategory
+          }
+        }, 2.5, startTime, true);
+        setSubmitting(false);
+        setSubmitted(true);
+      }
+    } catch (error) {
+      console.error('Error submitting extended nurture form:', error);
+      toast.error(error instanceof Error ? error.message : 'An unexpected error occurred. Please try again.');
+    }
+  };
+
   const onSubmitStep3 = async (data: any) => {
     try {
       setSubmitting(true);
@@ -178,7 +254,8 @@ export default function FormContainer() {
         options: { 
           lead_category: formData.lead_category,
           counselling_booked: Boolean(data.selectedDate && data.selectedSlot),
-          is_masters: formData.currentGrade === 'masters'
+          is_masters: formData.currentGrade === 'masters',
+          extended_form_completed: formData.lead_category === 'NURTURE'
         }
       });
       
@@ -206,15 +283,23 @@ export default function FormContainer() {
 
   const getStepProgress = () => {
     switch (currentStep) {
-      case 1: return 33;
-      case 2: return 66;
+      case 1: return 25;
+      case 2: return 50;
+      case 2.5: return 75; // Extended nurture form
       case 3: return 100;
       default: return 0;
     }
   };
   
   useEffect(() => {
+    // Track page view when component mounts or step changes
+    trackPixelEvent({
+      name: PIXEL_EVENTS.FORM_PAGE_VIEW,
+      options: { step: currentStep }
+    });
+    
     trackFormView();
+    
     return () => {
       if (!isSubmitted) {
         trackFormAbandonment(currentStep, startTime);
@@ -222,7 +307,7 @@ export default function FormContainer() {
     };
   }, [currentStep, isSubmitted, startTime]);
 
-  // Evaluation steps for the animation - longer durations for a more relaxed pace
+  // Evaluation steps for regular evaluation animation
   const evaluationSteps = [
     {
       message: `Analyzing your ${formData.currentGrade === 'masters' ? 'profile and program fit' : 'academic profile and curriculum fit'}`,
@@ -234,6 +319,22 @@ export default function FormContainer() {
     },
     {
       message: `Connecting you with our Beacon House admission experts`,
+      duration: 3500
+    }
+  ];
+
+  // Evaluation steps for NURTURE extended form animation
+  const nurtureEvaluationSteps = [
+    {
+      message: "Analyzing your profile and target university fitment",
+      duration: 3500
+    },
+    {
+      message: "Evaluating scholarship and funding opportunities",
+      duration: 3500
+    },
+    {
+      message: "Building your optimal admissions pathway",
       duration: 3500
     }
   ];
@@ -253,18 +354,21 @@ export default function FormContainer() {
           Thank You for Your Interest
         </h3>
         <div className="max-w-lg text-gray-600">
-          <p>{(formData.currentGrade === '7_below')
-            ? "We appreciate you taking the time to share your profile with us. Our admissions team shall get in touch."
-            : (formData.counselling?.selectedDate && formData.counselling?.selectedSlot)
-              ? `We've scheduled your counselling session for ${formData.counselling.selectedDate} at ${formData.counselling.selectedSlot}. Our team will contact you soon to confirm.`
-              : "We appreciate you taking the time to share your profile with us. Our admissions team will reach out to you within the next 24 hours."
-          }</p>
+          {formData.currentGrade === '7_below' ? (
+            <p>We appreciate you taking the time to share your profile with us. Our admissions team shall get in touch.</p>
+          ) : formData.extendedNurture?.nurtureSubcategory === 'nurture-no-booking' ? (
+            <p>Thank you for providing more details about your situation. Our admissions team will review your profile and reach out within 48 hours to discuss potential pathways that match your specific needs and requirements.</p>
+          ) : (formData.counselling?.selectedDate && formData.counselling?.selectedSlot) ? (
+            <p>We've scheduled your counselling session for {formData.counselling.selectedDate} at {formData.counselling.selectedSlot}. Our team will contact you soon to confirm.</p>
+          ) : (
+            <p>We appreciate you taking the time to share your profile with us. Our admissions team will reach out to you within the next 24 hours.</p>
+          )}
         </div>
       </div>
     );
   }
 
-  if (isSubmitting && !showEvaluationAnimation) {
+  if (isSubmitting && !showEvaluationAnimation && !showNurtureAnimation) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <div className="animate-pulse text-2xl font-semibold mb-4 text-primary">
@@ -286,15 +390,27 @@ export default function FormContainer() {
         <Progress value={getStepProgress()} className="mb-4" />
       </div>
 
-      {/* Loading animation */}
+      {/* Loading animation - Regular */}
       {showEvaluationAnimation && (
         <SequentialLoadingAnimation
           steps={evaluationSteps}
           onComplete={handleEvaluationComplete}
         />
       )}
+
+      {/* Loading animation - Nurture specific */}
+      {showNurtureAnimation && (
+        <SequentialLoadingAnimation
+          steps={nurtureEvaluationSteps}
+          onComplete={() => {
+            setShowNurtureAnimation(false);
+            setSubmitting(false);
+            setStep(2.5);
+          }}
+        />
+      )}
       
-      {!showEvaluationAnimation && (
+      {!showEvaluationAnimation && !showNurtureAnimation && (
         <div 
           ref={containerRef}
           className={`relative space-y-8 transition-all duration-300 ease-in-out mx-auto px-4 sm:px-8 md:px-12 ${currentStep === 3 ? 'max-w-full' : 'max-w-full md:max-w-4xl'}`}
@@ -309,7 +425,13 @@ export default function FormContainer() {
           {currentStep === 2 && isMastersApplication && (
             <MastersAcademicDetailsForm
               onSubmit={onSubmitStep2}
-              onBack={() => setStep(1)}
+              onBack={() => {
+                trackPixelEvent({
+                  name: PIXEL_EVENTS.FORM_PAGE2_PREVIOUS,
+                  options: { form_type: 'masters' }
+                });
+                setStep(1);
+              }}
               defaultValues={formData}
             />
           )}
@@ -317,8 +439,24 @@ export default function FormContainer() {
           {currentStep === 2 && !isMastersApplication && (
             <AcademicDetailsForm
               onSubmit={onSubmitStep2}
-              onBack={() => setStep(1)}
+              onBack={() => {
+                trackPixelEvent({
+                  name: PIXEL_EVENTS.FORM_PAGE2_PREVIOUS,
+                  options: { form_type: 'regular' }
+                });
+                setStep(1);
+              }}
               defaultValues={formData}
+            />
+          )}
+
+          {currentStep === 2.5 && (
+            <ExtendedNurtureForm
+              onSubmit={onSubmitExtendedNurture}
+              onBack={() => setStep(2)}
+              defaultValues={formData.extendedNurture}
+              currentGrade={formData.currentGrade}
+              formFillerType={formData.formFillerType}
             />
           )}
 

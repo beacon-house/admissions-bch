@@ -13,7 +13,10 @@ import {
   GRADE_FORMAT_OPTIONS,
   APPLICATION_PREPARATION_OPTIONS,
   TARGET_UNIVERSITIES_OPTIONS,
-  SUPPORT_LEVEL_OPTIONS
+  SUPPORT_LEVEL_OPTIONS,
+  PARENTAL_SUPPORT_OPTIONS,
+  PARTIAL_FUNDING_APPROACH_OPTIONS,
+  FINANCIAL_PLANNING_OPTIONS
 } from '@/types/form';
 
 // Personal Details Schema
@@ -82,6 +85,30 @@ export const mastersAcademicDetailsSchema = z.object({
   message: "Please provide your grade in the selected format",
   path: ['gpaValue'],
 });
+
+// Extended Nurture Form Schema - Student
+export const extendedNurtureStudentSchema = z.object({
+  parentalSupport: z.enum(PARENTAL_SUPPORT_OPTIONS),
+  partialFundingApproach: z.enum(PARTIAL_FUNDING_APPROACH_OPTIONS),
+  stepsTaken: z.array(z.string()).min(1, 'Please select at least one option'),
+  gradeSpecificQuestion: z.string(),
+  targetUniversities: z.string().min(1, 'Please provide at least one university')
+});
+
+// Extended Nurture Form Schema - Parent
+export const extendedNurtureParentSchema = z.object({
+  financialPlanning: z.enum(FINANCIAL_PLANNING_OPTIONS),
+  resourceInvestment: z.array(z.string()).min(1, 'Please select at least one option'),
+  stepsTaken: z.array(z.string()).min(1, 'Please select at least one option'),
+  gradeSpecificQuestion: z.string(),
+  targetUniversities: z.string().min(1, 'Please provide at least one university')
+});
+
+// Combined Extended Nurture Form Schema
+export const extendedNurtureSchema = z.union([
+  extendedNurtureStudentSchema,
+  extendedNurtureParentSchema
+]);
 
 // Counselling Form Schema
 export const counsellingSchema = z.object({

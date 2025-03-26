@@ -36,6 +36,33 @@ export const SUPPORT_LEVEL_OPTIONS = [
   'partner_universities'
 ] as const;
 
+// Nurture extended form enums
+export const PARENTAL_SUPPORT_OPTIONS = [
+  'would_join',
+  'supportive_limited',
+  'handle_independently',
+  'not_discussed'
+] as const;
+
+export const PARTIAL_FUNDING_APPROACH_OPTIONS = [
+  'accept_cover_remaining',
+  'defer_external_scholarships',
+  'affordable_alternatives',
+  'only_full_funding'
+] as const;
+
+export const FINANCIAL_PLANNING_OPTIONS = [
+  'savings',
+  'education_loans',
+  'external_scholarships',
+  'liquidate_investments',
+  'no_specific_plans'
+] as const;
+
+// Nurture subcategories
+export const NURTURE_SUBCATEGORIES = ['nurture-success', 'nurture-no-booking'] as const;
+export type NurtureSubcategory = typeof NURTURE_SUBCATEGORIES[number];
+
 // Lead Categories
 export const LEAD_CATEGORIES = ['BCH', 'lum-l1', 'lum-l2', 'NURTURE', 'masters-l1', 'masters-l2', 'DROP'] as const;
 export type LeadCategory = typeof LEAD_CATEGORIES[number];
@@ -96,6 +123,24 @@ export interface MastersAcademicFormData {
   contactMethods: ContactMethods;
 }
 
+export interface ExtendedNurtureFormData {
+  // Shared fields
+  stepsTaken: string[];
+  gradeSpecificQuestion: string;
+  targetUniversities: string;
+  
+  // Student-specific fields
+  parentalSupport?: typeof PARENTAL_SUPPORT_OPTIONS[number];
+  partialFundingApproach?: typeof PARTIAL_FUNDING_APPROACH_OPTIONS[number];
+  
+  // Parent-specific fields
+  financialPlanning?: typeof FINANCIAL_PLANNING_OPTIONS[number];
+  resourceInvestment?: string[];
+  
+  // Nurture subcategory
+  nurtureSubcategory?: NurtureSubcategory;
+}
+
 export interface CounsellingFormData {
   selectedDate?: string;
   selectedSlot?: string;
@@ -105,6 +150,7 @@ export interface CounsellingFormData {
 export type CompleteFormData = BaseFormData & 
   (AcademicFormData | MastersAcademicFormData) & {
     lead_category?: LeadCategory;
+    extendedNurture?: ExtendedNurtureFormData;
     counselling?: CounsellingFormData;
   };
 

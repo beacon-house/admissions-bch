@@ -50,6 +50,31 @@
 | What level of support do you need for your Master's applications? | `supportLevel` | `personalized_guidance`, `exploring_options`, `self_guided`, `partner_universities` |
 | Level of scholarship needed | `scholarshipRequirement` | `scholarship_optional`, `partial_scholarship`, `full_scholarship` |
 
+## Step 2.5: Extended Nurture Form
+
+### Common Fields (Both Parent and Student)
+
+| Question/Field | Webhook Variable Name | Possible Values |
+|---------------|----------------------|-----------------|
+| Which steps have you/your child already taken? | `nurtureStepsTaken` | Array of: `researched_universities`, `taken_standardized_tests`, `extracurricular_activities`, `started_essays`, `connected_with_students`, `none_yet` |
+| Grade-specific question | `gradeSpecificAnswer` | Various values depending on grade |
+| Target universities | `targetUniversitiesList` | Free text |
+| Extended form completed | `extendedFormCompleted` | `true` |
+
+### Student-Specific Fields
+
+| Question/Field | Webhook Variable Name | Possible Values |
+|---------------|----------------------|-----------------|
+| We find that parental support greatly increases success with admissions. Would your parents be able to join a counseling session? | `parentalSupport` | `would_join`, `supportive_limited`, `handle_independently`, `not_discussed` |
+| If your preferred university offers admission with partial funding, what would be your approach? | `partialFundingApproach` | `accept_cover_remaining`, `defer_external_scholarships`, `affordable_alternatives`, `only_full_funding` |
+
+### Parent-Specific Fields
+
+| Question/Field | Webhook Variable Name | Possible Values |
+|---------------|----------------------|-----------------|
+| Beyond scholarships, how are you planning for your child's international education finances? | `financialPlanning` | `savings`, `education_loans`, `external_scholarships`, `liquidate_investments`, `no_specific_plans` |
+| What resources are you willing to invest in your child's university preparations? | `resourceInvestment` | Array of: `academic_support`, `extracurricular_development`, `test_preparation`, `university_visits`, `dedicated_time`, `limited_investment` |
+
 ## Step 3: Counselling Form
 
 | Question/Field | Webhook Variable Name | Possible Values |
@@ -65,4 +90,4 @@
 | Lead Category | `lead_category` | `BCH`, `lum-l1`, `lum-l2`, `NURTURE`, `masters-l1`, `masters-l2`, `DROP` |
 | Total Time Spent | `total_time_spent` | Number (seconds) |
 | Created At | `created_at` | ISO date string |
-| Step Completed | `step_completed` | `1`, `2`, `3` |
+| Step Completed | `step_completed` | `1`, `2`, `2.5`, `3` |

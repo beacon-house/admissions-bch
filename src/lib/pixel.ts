@@ -11,7 +11,10 @@ const EVENT_PREFIXES = {
   CTA_HEADER: 'admissions_cta_header',
   CTA_HERO: 'admissions_cta_hero',
   FORM_PAGE1: 'admissions_page1_continue',
-  FORM_PAGE2: 'admissions_page2_continue',
+  FORM_PAGE2_NEXT_REGULAR: 'admissions_page2_next_regular',
+  FORM_PAGE2_NEXT_MASTERS: 'admissions_page2_next_masters',
+  FORM_PAGE2_PREVIOUS: 'admissions_page2_previous',
+  FORM_PAGE_VIEW: 'admissions_page_view',
   FORM_COMPLETE: 'admissions_form_complete',
 } as const;
 
@@ -65,6 +68,9 @@ export const PIXEL_EVENTS = {
   CTA_HEADER: getEventName(EVENT_PREFIXES.CTA_HEADER),
   CTA_HERO: getEventName(EVENT_PREFIXES.CTA_HERO),
   FORM_PAGE1: getEventName(EVENT_PREFIXES.FORM_PAGE1),
-  FORM_PAGE2: getEventName(EVENT_PREFIXES.FORM_PAGE2),
+  FORM_PAGE2_NEXT_REGULAR: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_REGULAR),
+  FORM_PAGE2_NEXT_MASTERS: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_MASTERS),
+  FORM_PAGE2_PREVIOUS: getEventName(EVENT_PREFIXES.FORM_PAGE2_PREVIOUS),
+  FORM_PAGE_VIEW: getEventName(EVENT_PREFIXES.FORM_PAGE_VIEW),
   FORM_COMPLETE: getEventName(EVENT_PREFIXES.FORM_COMPLETE),
 } as const;
