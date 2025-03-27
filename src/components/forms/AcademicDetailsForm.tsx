@@ -18,7 +18,9 @@ import {
 const academicDetailsSchema = z.object({
   curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
   schoolName: z.string().min(2, 'School name is required'),
-  academicPerformance: z.enum(['top_5', 'top_10', 'top_25', 'others']),
+  gradeFormat: z.enum(['gpa', 'percentage']),
+  gpaValue: z.string().optional(),
+  percentageValue: z.string().optional(),
   targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
   preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
@@ -33,6 +35,16 @@ const academicDetailsSchema = z.object({
     message: "Please select at least one contact method",
     path: ['contact']
   }),
+}).refine(data => {
+  if (data.gradeFormat === 'gpa') {
+    return !!data.gpaValue;
+  } else if (data.gradeFormat === 'percentage') {
+    return !!data.percentageValue;
+  }
+  return true;
+}, {
+  message: "Please provide your grade in the selected format",
+  path: ['gpaValue'],
 });
 
 export type AcademicDetailsData = z.infer<typeof academicDetailsSchema>;
@@ -55,10 +67,13 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     formState: { errors },
     setValue,
     getValues,
+    watch,
+    clearErrors,
   } = useForm<AcademicDetailsData>({
     resolver: zodResolver(academicDetailsSchema),
     defaultValues: {
       ...defaultValues,
+      gradeFormat: defaultValues?.gradeFormat || 'gpa',
       contactMethods: {
         call: defaultValues?.contactMethods?.call || false,
         callNumber: defaultValues?.contactMethods?.callNumber || defaultValues?.phoneNumber || '',
@@ -69,6 +84,9 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
       }
     }
   });
+
+  // Watch gradeFormat to update UI
+  const gradeFormat = watch('gradeFormat');
 
   // Pre-fill contact methods with user data from step 1
   useEffect(() => {
@@ -174,24 +192,89 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           )}
         </div>
 
+        {/* Academic Grade Format Selection - New implementation */}
         <div className="space-y-2">
-          <Label>Academic Performance</Label>
-          <Select 
-            onValueChange={(value) => setValue('academicPerformance', value as AcademicDetailsData['academicPerformance'])}
-            defaultValue={defaultValues?.academicPerformance}
-          >
-            <SelectTrigger className="h-12 bg-white">
-              <SelectValue placeholder="Select your academic standing" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="top_5">Top 5% of class</SelectItem>
-              <SelectItem value="top_10">Top 10% of class</SelectItem>
-              <SelectItem value="top_25">Top 25% of class</SelectItem>
-              <SelectItem value="others">Others</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.academicPerformance && (
-            <p className="text-sm text-red-500 italic">{errors.academicPerformance.message}</p>
+          <Label className="text-gray-700">What was the student's GPA/Percentage in the most recent exam?</Label>
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'gpa');
+                clearErrors('gpaValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'gpa'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              GPA Format
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'percentage');
+                clearErrors('percentageValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'percentage'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              Percentage Format
+            </button>
+          </div>
+
+          {/* Show appropriate input field based on selected format */}
+          {gradeFormat === 'gpa' ? (
+            <div className="space-y-2">
+              <Label htmlFor="gpaValue" className="text-gray-700">GPA (out of 10)</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.]?[0-9]*"
+                  placeholder="Enter GPA value (e.g. 8.5)"
+                  id="gpaValue"
+                  {...register('gpaValue')}
+                  className="h-12 bg-white"
+                  suffix="/10"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseFloat(value) >= 1 && parseFloat(value) <= 10)) {
+                      e.target.value = value;
+                    }
+                  }}
+                />
+              {errors.gpaValue && (
+                <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="percentageValue" className="text-gray-700">Percentage</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  pattern="[0-9]*[.]?[0-9]*"
+                  placeholder="Enter percentage (e.g. 85)"
+                  id="percentageValue"
+                  {...register('percentageValue')}
+                  className="h-12 bg-white"
+                  suffix="%"
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (parseFloat(value) >= 1 && parseFloat(value) <= 100)) {
+                      e.target.value = value;
+                    }
+                  }}
+                />
+              {errors.percentageValue && (
+                <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
+              )}
+            </div>
           )}
         </div>
 

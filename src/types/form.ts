@@ -48,7 +48,8 @@ export const PARTIAL_FUNDING_APPROACH_OPTIONS = [
   'accept_cover_remaining',
   'defer_external_scholarships',
   'affordable_alternatives',
-  'only_full_funding'
+  'only_full_funding',
+  'need_to_ask'
 ] as const;
 
 export const FINANCIAL_PLANNING_OPTIONS = [
@@ -125,7 +126,6 @@ export interface MastersAcademicFormData {
 
 export interface ExtendedNurtureFormData {
   // Shared fields
-  stepsTaken: string[];
   gradeSpecificQuestion: string;
   targetUniversities: string;
   
@@ -135,7 +135,6 @@ export interface ExtendedNurtureFormData {
   
   // Parent-specific fields
   financialPlanning?: typeof FINANCIAL_PLANNING_OPTIONS[number];
-  resourceInvestment?: string[];
   
   // Nurture subcategory
   nurtureSubcategory?: NurtureSubcategory;

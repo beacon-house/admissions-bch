@@ -1,4 +1,5 @@
 const MEASUREMENT_ID = 'G-ZRF7H5ZFXK';
+const PRODUCTION_DOMAIN = 'admissions.beaconhouse.in';
 
 interface GAEventParams {
   [key: string]: string | number | boolean;
@@ -6,12 +7,27 @@ interface GAEventParams {
 
 export const initializeAnalytics = (): void => {
   try {
-    window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]) {
-      window.dataLayer.push(arguments);
+    // Check if the app is running on the production domain
+    if (window.location.hostname === PRODUCTION_DOMAIN) {
+      window.dataLayer = window.dataLayer || [];
+      function gtag(...args: any[]) {
+        window.dataLayer.push(arguments);
+      }
+      
+      // Properly encode document location and referrer
+      const encodedLocation = encodeURIComponent(window.location.href);
+      const encodedReferrer = encodeURIComponent(document.referrer || '');
+      
+      gtag('js', new Date());
+      gtag('config', MEASUREMENT_ID, {
+        'page_location': encodedLocation,
+        'page_referrer': encodedReferrer
+      });
+      
+      console.log('Google Analytics initialized for production');
+    } else {
+      console.log('Google Analytics not initialized - not on production domain');
     }
-    gtag('js', new Date());
-    gtag('config', MEASUREMENT_ID);
   } catch (error) {
     console.error('Failed to initialize Google Analytics:', error);
   }
@@ -22,7 +38,8 @@ export const trackEvent = (
   params?: GAEventParams
 ): void => {
   try {
-    if (window.gtag) {
+    // Only track events if we're on the production domain
+    if (window.location.hostname === PRODUCTION_DOMAIN && window.gtag) {
       window.gtag('event', eventName, params);
     }
   } catch (error) {

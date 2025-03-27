@@ -119,10 +119,8 @@ export const submitFormData = async (
       
       // Parent-specific fields
       financialPlanning: data.extendedNurture.financialPlanning,
-      resourceInvestment: data.extendedNurture.resourceInvestment,
       
       // Common fields
-      nurtureStepsTaken: data.extendedNurture.stepsTaken,
       gradeSpecificAnswer: data.extendedNurture.gradeSpecificQuestion,
       targetUniversitiesList: data.extendedNurture.targetUniversities,
       nurtureSubcategory: data.extendedNurture.nurtureSubcategory,

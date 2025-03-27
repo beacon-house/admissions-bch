@@ -1,16 +1,16 @@
-import { LeadCategory } from '@/types/form';
+import { LeadCategory, ExtendedNurtureFormData } from '@/types/form';
 
 /**
  * Determines the lead category based on categorization logic
  * 
  * Categories:
- * 1. BCH - High priority leads
+ * 1. bch - High priority leads
  * 2. lum-l1 - Medium-high priority luminaire leads
  * 3. lum-l2 - Medium priority luminaire leads
  * 4. masters-l1 - High priority masters leads
  * 5. masters-l2 - Medium priority masters leads
- * 6. NURTURE - Default category for all others
- * 7. DROP - Grade 7 or below, form directly submitted after step 1
+ * 6. nurture - Default category for all others
+ * 7. drop - Grade 7 or below, form directly submitted after step 1
  */
 export const determineLeadCategory = (
   currentGrade: string,
@@ -24,16 +24,70 @@ export const determineLeadCategory = (
   intake?: string,
   applicationPreparation?: string,
   targetUniversities?: string,
-  supportLevel?: string
+  supportLevel?: string,
+  // New parameter for Extended Nurture Form data
+  extendedNurtureData?: ExtendedNurtureFormData
 ): LeadCategory => {
   // Special case: Grade 7 or below is directly submitted after step 1 and categorized as DROP
   if (currentGrade === '7_below') {
-    return 'DROP';
+    return 'drop';
   }
+  
+  // If extended nurture data exists, we need to re-categorize the lead
+  if (extendedNurtureData) {
+    // Re-categorize based on form filler type and their answers
+    if (formFillerType === 'parent') {
+      const { financialPlanning } = extendedNurtureData;
+      
+      if (financialPlanning === 'savings') {
+        // Re-categorize as BCH or lum-l1 based on original logic, but ignore scholarshipRequirement
+        if (
+          ['9', '10'].includes(currentGrade) ||
+          (currentGrade === '11' && targetUniversityRank === 'top_20')
+        ) {
+          return 'bch';
+        } else if (['11', '12'].includes(currentGrade)) {
+          return 'lum-l1';
+        }
+      } else if (financialPlanning === 'education_loans') {
+        return 'lum-l2';
+      } else {
+        // For external_scholarships, liquidate_investments, and no_specific_plans
+        return 'nurture';
+      }
+    } else if (formFillerType === 'student') {
+      const { partialFundingApproach } = extendedNurtureData;
+      
+      if (partialFundingApproach === 'accept_cover_remaining') {
+        // Re-categorize as BCH or lum-l1 based on original logic, but ignore scholarshipRequirement
+        if (
+          ['9', '10'].includes(currentGrade) ||
+          (currentGrade === '11' && targetUniversityRank === 'top_20' && ['IB', 'IGCSE'].includes(curriculumType))
+        ) {
+          return 'bch';
+        } else if (
+          ['11', '12'].includes(currentGrade) && 
+          ['IB', 'IGCSE'].includes(curriculumType)
+        ) {
+          return 'lum-l1';
+        }
+      } else if (partialFundingApproach === 'defer_external_scholarships') {
+        return 'lum-l2';
+      } else {
+        // For affordable_alternatives, only_full_funding, and need_to_ask
+        return 'nurture';
+      }
+    }
+    
+    // If we reach here, keep as NURTURE
+    return 'nurture';
+  }
+  
+  // If we don't have extended nurture data, continue with the original logic
   
   // Global override: Full scholarship leads go to NURTURE by default
   if (scholarshipRequirement === 'full_scholarship') {
-    return 'NURTURE';
+    return 'nurture';
   }
   
   // MASTERS category evaluation
@@ -41,7 +95,7 @@ export const determineLeadCategory = (
     // First check if application preparation is "undecided_need_help"
     // If so, route to NURTURE regardless of other criteria
     if (applicationPreparation === 'undecided_need_help') {
-      return 'NURTURE';
+      return 'nurture';
     }
     
     // Only proceed with masters-l1/masters-l2 evaluation if the user is actually preparing
@@ -52,12 +106,12 @@ export const determineLeadCategory = (
       } else if (targetUniversities === 'top_50_100' || targetUniversities === 'partner_university') {
         return 'masters-l2';
       } else if (targetUniversities === 'unsure') {
-        return 'NURTURE';
+        return 'nurture';
       }
     }
     
     // If masters but doesn't fit l1 or l2 criteria, categorize as NURTURE
-    return 'NURTURE';
+    return 'nurture';
   }
 
   // BCH category
@@ -67,7 +121,7 @@ export const determineLeadCategory = (
     formFillerType === 'parent' &&
     (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship')
   ) {
-    return 'BCH';
+    return 'bch';
   }
 
   // Case 2: Grade 11, parent or IB/IGCSE student, scholarship not required or partial, top-20 target
@@ -80,7 +134,7 @@ export const determineLeadCategory = (
       (formFillerType === 'student' && ['IB', 'IGCSE'].includes(curriculumType))
     )
   ) {
-    return 'BCH';
+    return 'bch';
   }
 
   // Check for lum-l1 or lum-l2 eligibility based on school year and curriculum
@@ -110,5 +164,5 @@ export const determineLeadCategory = (
   }
 
   // Default: NURTURE for all other cases
-  return 'NURTURE';
+  return 'nurture';
 }

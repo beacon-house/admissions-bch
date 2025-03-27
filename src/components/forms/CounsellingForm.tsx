@@ -23,7 +23,7 @@ interface CounsellingFormProps {
 
 export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps) {
   // Determine which counselor to show based on lead category
-  const isBCH = leadCategory === 'BCH';
+  const isBCH = leadCategory === 'bch';
   const counselorName = isBCH ? "Viswanathan" : "Karthik Lakshman";
   const counselorImage = isBCH ? "/vishy.png" : "/karthik.png";
   const linkedinUrl = isBCH 

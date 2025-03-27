@@ -10,17 +10,15 @@ import { cn } from '@/lib/utils';
 // Extended Nurture Form Schema
 const extendedNurtureSchema = z.object({
   // Shared fields between parent and student
-  stepsTaken: z.array(z.string()).min(1, 'Please select at least one option'),
   gradeSpecificQuestion: z.string(),
-  targetUniversities: z.string().min(1, 'Please provide at least one university'),
+  targetUniversities: z.string().min(1, 'Please provide at least one interest'),
   
   // Student-specific fields (optional when form filler is parent)
   parentalSupport: z.enum(['would_join', 'supportive_limited', 'handle_independently', 'not_discussed']).optional(),
-  partialFundingApproach: z.enum(['accept_cover_remaining', 'defer_external_scholarships', 'affordable_alternatives', 'only_full_funding']).optional(),
+  partialFundingApproach: z.enum(['accept_cover_remaining', 'defer_external_scholarships', 'affordable_alternatives', 'only_full_funding', 'need_to_ask']).optional(),
   
   // Parent-specific fields (optional when form filler is student)
-  financialPlanning: z.enum(['savings', 'education_loans', 'external_scholarships', 'liquidate_investments', 'no_specific_plans']).optional(),
-  resourceInvestment: z.array(z.string()).optional(),
+  financialPlanning: z.enum(['savings', 'education_loans', 'external_scholarships', 'liquidate_investments']).optional()
 });
 
 export type ExtendedNurtureData = z.infer<typeof extendedNurtureSchema>;
@@ -48,9 +46,6 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
         schema = schema.refine(
           (data) => !!data.financialPlanning,
           { message: "Please select a financial planning option", path: ["financialPlanning"] }
-        ).refine(
-          (data) => !!data.resourceInvestment && data.resourceInvestment.length > 0,
-          { message: "Please select at least one resource investment option", path: ["resourceInvestment"] }
         );
       } else {
         // For students, require student-specific fields
@@ -82,41 +77,31 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
   } = useForm<ExtendedNurtureData>({
     resolver: zodResolver(extendedNurtureSchema),
     defaultValues: {
-      ...defaultValues,
-      stepsTaken: defaultValues?.stepsTaken || [],
-      resourceInvestment: defaultValues?.resourceInvestment || []
+      ...defaultValues
     }
   });
 
   // Get the grade-specific question based on current grade (same for both parent and student)
   const getGradeSpecificQuestion = () => {
     // The title prefix changes based on whether the form filler is a parent or student
-    const titlePrefix = isParent ? "Your child is " : "You're ";
-    
     if (currentGrade === '9' || currentGrade === '10') {
       return {
-        title: `${titlePrefix}starting this journey early – that's fantastic! This is a great time to begin building a strong profile. ${isParent ? "Would your child" : "Would you"} be interested in support for any of the following?`,
+        title: isParent 
+          ? "Your child is starting their journey early – that's fantastic! Would you like help in building a strong profile?" 
+          : "You're starting your journey early – that's fantastic! Would you like help in building a strong profile?",
         options: [
-          { value: 'research_paper', label: 'Research Paper' },
-          { value: 'capstone_project', label: 'Capstone Project' },
-          { value: 'extracurricular', label: 'Extracurricular Development' },
-          { value: 'internship', label: 'Internship' },
-          { value: 'all', label: 'All of the above' },
-          { value: 'need_help', label: 'Interested, But need help figuring out what I need' },
-          { value: 'academics_focus', label: 'Aiming for minimal profile-building activities, prioritizing academics instead' }
+          { value: 'interested_in_profile', label: 'Interested in doing relevant work to build strong profile' },
+          { value: 'academics_focus', label: 'Focus is on Academics, but will do the minimum needed to get an admit' }
         ]
       };
     } else if (currentGrade === '11') {
       return {
-        title: `${titlePrefix}in a critical phase of building ${isParent ? "their" : "your"} university profile. Would ${isParent ? "they" : "you"} like help with any of the following?`,
+        title: isParent
+          ? "Your child is in a critical phase of building their university profile. Would you like help in building a strong profile?"
+          : "You're in a critical phase of building your university profile. Would you like help in building a strong profile?",
         options: [
-          { value: 'research_paper', label: 'Research Paper' },
-          { value: 'capstone_project', label: 'Capstone Project' },
-          { value: 'extracurricular', label: 'Extracurricular Development' },
-          { value: 'internship', label: 'Internship' },
-          { value: 'all', label: 'All of the above' },
-          { value: 'need_help', label: 'Interested, But need help figuring out what I need' },
-          { value: 'academics_focus', label: 'Aiming for minimal profile-building activities, prioritizing academics instead' }
+          { value: 'interested_in_profile', label: 'Interested in doing relevant work to build strong profile' },
+          { value: 'academics_focus', label: 'Focus is on Academics, will only do the minimum needed to get an admit' }
         ]
       };
     } else if (currentGrade === '12') {
@@ -202,7 +187,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">They're supportive but have limited availability</span>
+                    <span className="text-sm">They're supportive but will not be able to join</span>
                   </div>
                 </label>
                 
@@ -236,7 +221,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
               )}
             </div>
 
-            {/* Partial Funding Approach - Student Only */}
+            {/* Financial Planning - Student Only */}
             <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
               <Label className="text-sm font-medium text-primary">While 100% scholarship is ideal, it is quite hard for Undergrad unless you have a stellar profile. If your preferred university offers admission with partial funding, what would be your approach?</Label>
               
@@ -249,7 +234,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Accept and find ways to cover remaining costs using loans</span>
+                    <span className="text-sm">Can fund fully through our savings</span>
                   </div>
                 </label>
                 
@@ -261,7 +246,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Defer and apply for additional external scholarships</span>
+                    <span className="text-sm">Defer to following year and apply for additional external scholarships</span>
                   </div>
                 </label>
                 
@@ -273,7 +258,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Consider more affordable university alternatives</span>
+                    <span className="text-sm">Mainly through an education loan</span>
                   </div>
                 </label>
                 
@@ -285,7 +270,19 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Would only proceed with full funding</span>
+                    <span className="text-sm">I require full scholarship support to proceed</span>
+                  </div>
+                </label>
+                
+                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                  <input
+                    type="radio"
+                    {...register('partialFundingApproach')}
+                    value="need_to_ask"
+                    className="mt-0.5"
+                  />
+                  <div>
+                    <span className="text-sm">I need to ask my parents</span>
                   </div>
                 </label>
               </div>
@@ -302,7 +299,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
           <>
             {/* Financial Planning Question - Parent Only */}
             <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-              <Label className="text-sm font-medium text-primary">Beyond scholarships, how are you planning for your child's international education finances?</Label>
+              <Label className="text-sm font-medium text-primary">How do you plan to finance your child's international education? (This helps us customize our support to best fit your situation.)</Label>
               
               <div className="space-y-2 mt-3">
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
@@ -313,7 +310,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">We've set aside some savings</span>
+                    <span className="text-sm">Can fund fully through our savings</span>
                   </div>
                 </label>
                 
@@ -325,7 +322,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">We're exploring education loans</span>
+                    <span className="text-sm">Primarily through our savings, with a supplemental education loan as needed</span>
                   </div>
                 </label>
                 
@@ -337,7 +334,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">We're researching external scholarship opportunities</span>
+                    <span className="text-sm">Mainly through an education loan</span>
                   </div>
                 </label>
                 
@@ -349,19 +346,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">We're planning to liquidate investments if needed</span>
-                  </div>
-                </label>
-                
-                <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                  <input
-                    type="radio"
-                    {...register('financialPlanning')}
-                    value="no_specific_plans"
-                    className="mt-0.5"
-                  />
-                  <div>
-                    <span className="text-sm">We have not made specific financial plans yet</span>
+                    <span className="text-sm">I require full scholarship support to proceed</span>
                   </div>
                 </label>
               </div>
@@ -372,91 +357,6 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
             </div>
           </>
         )}
-
-        {/* Steps Taken - Checkbox Group - Adjusted for Parent/Student */}
-        <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-          <Label className="text-sm font-medium text-primary">
-            {isParent ? "Which steps has your child already taken?" : "Which steps have you already taken?"} (Select all that apply)
-          </Label>
-          
-          {errors.stepsTaken && (
-            <p className="text-sm text-red-500 italic mb-2">{errors.stepsTaken?.message?.toString() || "Please select at least one option"}</p>
-          )}
-          
-          <div className="space-y-2 mt-3">
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="researched_universities"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">Researched {isParent ? "" : "specific "}universities and{isParent ? "" : " their"} requirements</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="taken_standardized_tests"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">Taken/registered for standardized tests (SAT/ACT/TOEFL)</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="extracurricular_activities"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">Participated in relevant extracurricular activities</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="started_essays"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">Started {isParent ? "application materials" : "essay/personal statement drafts"}</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="connected_with_students"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">Connected with current students or alumni</span>
-              </div>
-            </label>
-            
-            <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-              <input
-                type="checkbox"
-                value="none_yet"
-                {...register('stepsTaken')}
-                className="mt-0.5 rounded"
-              />
-              <div>
-                <span className="text-sm">None of these yet</span>
-              </div>
-            </label>
-          </div>
-        </div>
 
         {/* Grade-Specific Question */}
         <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
@@ -483,112 +383,25 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
           )}
         </div>
 
-        {/* Target Universities */}
+        {/* Extracurricular Interests */}
         <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
           <Label htmlFor="targetUniversities" className="text-sm font-medium text-primary">
             {isParent 
-              ? "Please name 1-2 specific universities you're considering for your child:" 
-              : "Please name 1-2 specific universities you're most interested in:"}
+              ? "Please tell us about your child's extra-curricular interests?" 
+              : "Please tell us about your extra-curricular interests?"}
           </Label>
           
           <Input
             id="targetUniversities"
             {...register('targetUniversities')}
             className="h-10 bg-white mt-3"
-            placeholder="E.g., Harvard University, Stanford University"
+            placeholder="E.g., sports, music, debate, programming, community service"
           />
           
           {errors.targetUniversities && (
-            <p className="text-sm text-red-500 italic">{errors.targetUniversities?.message?.toString() || "Please provide at least one university"}</p>
+            <p className="text-sm text-red-500 italic">{errors.targetUniversities?.message?.toString() || "Please provide at least one interest"}</p>
           )}
         </div>
-
-        {/* Resource Investment - Parent Only */}
-        {isParent && (
-          <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-            <Label className="text-sm font-medium text-primary">
-              What resources are you willing to invest in your child's university preparations? (Select all that apply)
-            </Label>
-            
-            {errors.resourceInvestment && (
-              <p className="text-sm text-red-500 italic mb-2">{errors.resourceInvestment?.message?.toString() || "Please select at least one option"}</p>
-            )}
-            
-            <div className="space-y-2 mt-3">
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="academic_support"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">Additional academic support or tutoring</span>
-                </div>
-              </label>
-              
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="extracurricular_development"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">Extracurricular and profile development activities</span>
-                </div>
-              </label>
-              
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="test_preparation"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">Standardized test preparation courses</span>
-                </div>
-              </label>
-              
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="university_visits"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">University visits when possible</span>
-                </div>
-              </label>
-              
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="dedicated_time"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">Dedicated time for application guidance</span>
-                </div>
-              </label>
-              
-              <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                <input
-                  type="checkbox"
-                  value="limited_investment"
-                  {...register('resourceInvestment')}
-                  className="mt-0.5 rounded"
-                />
-                <div>
-                  <span className="text-sm">Limited additional investment beyond consultancy</span>
-                </div>
-              </label>
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="flex justify-between mt-8">

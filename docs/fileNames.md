@@ -129,16 +129,19 @@ This is a React-based landing page and lead generation system for Beacon House, 
 
 ## Important Notes
 1. Analytics Integration
-   - Google Analytics for event tracking
+   - Google Analytics for event tracking (active only on production domain)
    - Meta Pixel for conversion tracking with environment-specific events:
      - `admissions_cta_header_[environment]` - Header CTA clicks
      - `admissions_cta_hero_[environment]` - Hero section CTA clicks
      - `admissions_page1_continue_[environment]` - Step 1 completion
      - `admissions_page2_next_regular_[environment]` - Step 2 completion (non-masters)
      - `admissions_page2_next_masters_[environment]` - Step 2 completion (masters)
-     - `admissions_page2_previous_[environment]` - Going back from Step 2 to Step 1
      - `admissions_page_view_[environment]` - Form page views
      - `admissions_form_complete_[environment]` - Form completion
+     - `admissions_page3_submit_[lead_category]_[environment]` - Counselling form submission
+     - `admissions_flow_complete_bch_[environment]` - BCH flow completion
+     - `admissions_flow_complete_luminaire_[environment]` - Luminaire flow completion
+     - `admissions_flow_complete_masters_[environment]` - Masters flow completion
    - Hotjar for user behavior analysis
 
 2. Form Implementation

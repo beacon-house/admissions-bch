@@ -8,6 +8,7 @@ The form has these main components:
 - **Step 1**: Personal Details Form
 - **Step 2A**: Academic Details Form (for grades 8-12)
 - **Step 2B**: Masters Academic Details Form (for Masters applicants)
+- **Step 2.5**: Extended Nurture Form (for nurture category leads)
 - **Step 3**: Counselling Form (schedules a session with appropriate counselor)
 
 ## 2. Form Questions by Component
@@ -31,7 +32,9 @@ The form has these main components:
 |-------|------|------------|---------|
 | Curriculum Type | Select | Required | IB, IGCSE, CBSE, ICSE, State Boards, Others |
 | School Name | Text | Min 2 chars | |
-| Academic Performance | Select | Required | Top 5% of class, Top 10% of class, Top 25% of class, Others |
+| Grade Format | Button Group | Required | GPA Format, Percentage Format |
+| GPA Value (if GPA selected) | Numeric Input | Required, 1-10 range | Float with up to 1 decimal point |
+| Percentage Value (if Percentage selected) | Numeric Input | Required, 1-100 range | Float with up to 1 decimal point |
 | Target University Rank | Select | Required | Top 20 Universities, Top 50 Universities, Top 100 Universities, Any Good University |
 | Target Geographies | Checkbox Group | Min 1 selection | USA, UK, Canada, Australia, Europe, Asia, Middle East, Others, Need Guidance |
 | Level of scholarship needed | Radio | Required | Full scholarship needed, Partial scholarship needed, Scholarship optional |
@@ -54,8 +57,8 @@ The form has these main components:
 | Field | Type | Validation | Options |
 |-------|------|------------|---------|
 | Grade Format | Button Group | Required | GPA Format, Percentage Format |
-| GPA Value (if GPA selected) | Text | Required | /10 |
-| Percentage Value (if Percentage selected) | Text | Required | % |
+| GPA Value (if GPA selected) | Numeric Input | Required, 1-10 range | Float with up to 1 decimal point |
+| Percentage Value (if Percentage selected) | Numeric Input | Required, 1-100 range | Float with up to 1 decimal point |
 | GRE/GMAT Status | Select | Required | Yes - GRE, Yes - GMAT, No - planning to take it, Not required for my programs |
 | Exam Score (if GRE/GMAT selected) | Text | | |
 
@@ -68,28 +71,51 @@ The form has these main components:
 | Scholarship Requirement | Radio | Required | Full scholarship needed, Partial scholarship needed, Scholarship optional |
 | Contact Methods | Same as Step 2A | | |
 
-### Step 3: Counselling Form
+### Step 2.5: Extended Nurture Form
 
+#### Common Fields (Both Parent and Student)
 | Field | Type | Validation | Options |
-|-------|------|------------|---------|
-| Calendar Date Selection | Calendar | Optional | Next 7 days available |
-| Time Slot Selection | Button Group | Optional | Available slots between 10 AM and 8 PM |
+|---------------|----------------------|-----------------|
+| Grade-specific question response | Radio | Required | Values vary based on grade: For Grade 9/10: 'Interested in doing relevant work to build strong profile', 'Focus is on Academics, but will do the minimum needed to get an admit'. For Grade 11: 'Interested in doing relevant work to build strong profile', 'Focus is on Academics, will only do the minimum needed to get an admit'. For Grade 12: 'Graduating in 2024-25 applying for Fall '25', 'Graduating in 2024-25 applying for Fall '26', 'Starting Grade 12 in 2025-26' |
+| Extra-curricular interests | Text | Required | Free text |
+
+#### Student-Specific Fields
+| Field | Type | Validation | Options |
+|---------------|----------------------|-----------------|
+| Parental support for counseling | Radio | Required | 'Yes, they would join', 'They're supportive but will not be able to join', 'I prefer to handle this independently', 'I haven't discussed this with them in detail' |
+| Partial funding approach | Radio | Required | 'Can fund fully through our savings', 'Defer to following year and apply for additional external scholarships', 'Mainly through an education loan', 'I require full scholarship support to proceed', 'I need to ask my parents' |
+
+#### Parent-Specific Fields
+| Field | Type | Validation | Options |
+|---------------|----------------------|-----------------|
+| Financial planning approach | Radio | Required | 'Can fund fully through our savings', 'Primarily through our savings, with a supplemental education loan as needed', 'Mainly through an education loan', 'I require full scholarship support to proceed' |
+
+### Step 3: Counselling Form
+| Field | Type | Validation | Options |
+|---------------|----------------------|-----------------|
+| Selected date | Calendar | Optional | Next 7 days available |
+| Selected time slot | Button Group | Optional | Available slots between 10 AM and 8 PM |
 
 ## 3. Form Flow and Navigation
 
 ### Normal Flow
 1. User starts at Personal Details Form (Step 1)
 2. After completing Step 1, system checks:
-   - If grade is "7_below": Form is submitted directly with category "DROP"
+   - If grade is "7_below": Form is submitted directly with category "drop"
    - If grade is "masters": User proceeds to Masters Academic Details Form (Step 2B)
    - Otherwise: User proceeds to Academic Details Form (Step 2A)
 3. After completing Step 2:
    - System determines lead category
-   - User sees evaluation animation and proceeds to Counselling Form (Step 3)
-4. After completing Step 3, form is submitted with all data
+   - If lead category is "nurture": User proceeds to Extended Nurture Form (Step 2.5)
+   - Otherwise: User sees evaluation animation and proceeds to Counselling Form (Step 3)
+4. After completing Step 2.5:
+   - System re-categorizes lead based on Extended Nurture form answers
+   - If re-categorized as "nurture": Form is submitted directly
+   - Otherwise: User proceeds to Counselling Form (Step 3)
+5. After completing Step 3, form is submitted with all data
 
 ### Progress Indicators
-- Progress bar at the top shows 33% for Step 1, 66% for Step 2, 100% for Step 3
+- Progress bar at the top shows 25% for Step 1, 50% for Step 2, 75% for Step 2.5, 100% for Step 3
 - Current step is highlighted
 - Mobile navigation adapts to smaller screens
 
@@ -99,7 +125,7 @@ The form has these main components:
 - **Continue Button**: 
   - Validates all fields
   - If valid: Updates form store with data
-  - For grade "7_below": Submits form with DROP category
+  - For grade "7_below": Submits form with drop category
   - Otherwise: Advances to Step 2
 
 ### Step 2A/2B: Academic Details Form
@@ -110,7 +136,19 @@ The form has these main components:
   - Validates all fields
   - If valid: Updates form store with data
   - Determines lead category
-  - Shows evaluation animation and advances to Step 3
+  - For "nurture" category: Shows evaluation animation and advances to Step 2.5
+  - Otherwise: Shows evaluation animation and advances to Step 3
+
+### Step 2.5: Extended Nurture Form
+- **Previous Button**:
+  - Saves current form data
+  - Returns to Step 2
+- **Proceed Button**:
+  - Validates all fields
+  - If valid: Updates form store with data
+  - Re-categorizes lead based on form responses
+  - If re-categorized as "nurture": Submits form directly
+  - Otherwise: Advances to Step 3
 
 ### Step 3: Counselling Form
 - **Submit Application Button**:
@@ -119,33 +157,33 @@ The form has these main components:
   - Shows success message
 
 ### Evaluation Animation
-- Triggered after Step 2 for leads
+- Triggered after Step 2 for all leads
 - Shows analysis animation for 10 seconds
-- Automatically advances to Step 3 after completion
+- Automatically advances to next step after completion
 
 ## 5. Special Cases and Conditional Logic
 
 ### Grade 7 or Below
 - Form submits directly after Step 1
-- Category set to "DROP"
+- Category set to "drop"
 - No Step 2 or 3 presented
 
 ### Masters Applications
 - Different form questions in Step 2
 - Application preparation status determines initial filtering:
-  - "undecided_need_help" → NURTURE 
+  - "undecided_need_help" → nurture 
   - Otherwise → proceed based on target university evaluation
 - Target universities determine category:
   - "top_20_50" → masters-l1
   - "top_50_100" or "partner_university" → masters-l2
-  - "unsure" → NURTURE
+  - "unsure" → nurture
 
 ### Full Scholarship Requirement
-- Any application with "full_scholarship" selected goes to NURTURE category
+- Any application with "full_scholarship" selected goes to nurture category by default
 
 ### Counselor Assignment in Step 3
 - Based on lead category:
-  - BCH category: Shows Viswanathan as counselor
+  - bch category: Shows Viswanathan as counselor
   - Other categories: Shows Karthik Lakshman as counselor
 
 ### Time Slots in Counselling Form
@@ -161,8 +199,9 @@ The form has these main components:
 - Final submission combines all stored data
 
 ### Lead Categorization
-- Performed in `leadCategorization.ts` after Step 2
-- Categories: BCH, lum-l1, lum-l2, masters-l1, masters-l2, NURTURE, DROP
+- Initial categorization performed in `leadCategorization.ts` after Step 2
+- Re-categorization performed after Extended Nurture Form (Step 2.5)
+- Categories: bch, lum-l1, lum-l2, masters-l1, masters-l2, nurture, drop
 - Based on complex criteria including grade, form filler type, curriculum, and scholarship requirements
 
 ### Form Submission
@@ -186,9 +225,6 @@ The following events are implemented in the application:
 - `admissions_page_view_[environment]`: Triggered on form page views
 - `admissions_form_complete_[environment]`: Triggered on form completion
 
-### Extended Nurture Events:
-- `admissions_page25_proceed_nurture_success_[environment]`: Triggered when proceeding from Extended Nurture Form to counselling booking
-
 ### Counselling Form Events:
 - `admissions_page3_submit_[lead_category]_[environment]`: Triggered when lead submits counselling form
 
@@ -196,4 +232,3 @@ The following events are implemented in the application:
 - `admissions_flow_complete_bch_[environment]`: Triggered when a BCH lead completes entire form flow
 - `admissions_flow_complete_luminaire_[environment]`: Triggered when a Luminaire lead (l1 or l2) completes flow
 - `admissions_flow_complete_masters_[environment]`: Triggered when a Masters lead completes flow
-- `admissions_flow_complete_nurture_success_[environment]`: Triggered when nurture-success lead completes flow
