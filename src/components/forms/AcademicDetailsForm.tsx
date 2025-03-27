@@ -174,7 +174,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.curriculumType && (
-            <p className="text-sm text-red-500 italic">{errors.curriculumType.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -187,7 +187,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             className="h-12 bg-white"
           />
           {errors.schoolName && (
-            <p className="text-sm text-red-500 italic">{errors.schoolName.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -244,7 +244,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                   onChange={(e) => handleNumericInput(e, 1, 10)}
                 />
               {errors.gpaValue && (
-                <p className="text-sm text-red-500 italic">{errors.gpaValue.message}</p>
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
               )}
             </div>
           ) : (
@@ -261,7 +261,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                   onChange={(e) => handleNumericInput(e, 1, 100)}
                 />
               {errors.percentageValue && (
-                <p className="text-sm text-red-500 italic">{errors.percentageValue.message}</p>
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
               )}
             </div>
           )}
@@ -284,7 +284,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.targetUniversityRank && (
-            <p className="text-sm text-red-500 italic">{errors.targetUniversityRank.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -294,7 +294,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             Select your preferred destinations (includes typical budget ranges)
           </p>
           {errors.preferredCountries && (
-            <p className="text-sm text-red-500 italic mb-2">{errors.preferredCountries.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
@@ -370,7 +370,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           </div>
           
           {errors.scholarshipRequirement && (
-            <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 

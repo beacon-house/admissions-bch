@@ -43,16 +43,16 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
         // For parents, require parent-specific fields
         schema = schema.refine(
           (data) => !!data.partialFundingApproach,
-          { message: "Please select a funding approach option", path: ["partialFundingApproach"] }
+          { message: "Please answer this question", path: ["partialFundingApproach"] }
         );
       } else {
         // For students, require student-specific fields
         schema = schema.refine(
           (data) => !!data.parentalSupport,
-          { message: "Please select a parental support option", path: ["parentalSupport"] }
+          { message: "Please answer this question", path: ["parentalSupport"] }
         ).refine(
           (data) => !!data.partialFundingApproach,
-          { message: "Please select a funding approach option", path: ["partialFundingApproach"] }
+          { message: "Please answer this question", path: ["partialFundingApproach"] }
         );
       }
       
@@ -190,7 +190,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
               </div>
               
               {errors.parentalSupport && (
-                <p className="text-sm text-red-500 italic">{errors.parentalSupport?.message?.toString() || "Please select an option"}</p>
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
               )}
             </div>
 
@@ -261,7 +261,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
               </div>
               
               {errors.partialFundingApproach && (
-                <p className="text-sm text-red-500 italic">{errors.partialFundingApproach?.message?.toString() || "Please select an option"}</p>
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
               )}
             </div>
           </>
@@ -325,7 +325,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
               </div>
               
               {errors.partialFundingApproach && (
-                <p className="text-sm text-red-500 italic">{errors.partialFundingApproach?.message?.toString() || "Please select an option"}</p>
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
               )}
             </div>
           </>
@@ -352,7 +352,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
           </div>
           
           {errors.strongProfileIntent && (
-            <p className="text-sm text-red-500 italic">{errors.strongProfileIntent?.message?.toString() || "Please select an option"}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
       </div>

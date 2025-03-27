@@ -52,7 +52,7 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
         </div>
         
         {errors.applicationPreparation && (
-          <p className="text-sm text-red-500 italic">{errors.applicationPreparation.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
 
@@ -111,7 +111,7 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
         </div>
         
         {errors.targetUniversities && (
-          <p className="text-sm text-red-500 italic">{errors.targetUniversities.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
 
@@ -170,7 +170,7 @@ export function MastersApplicationPrep({ register, errors }: MastersApplicationP
         </div>
         
         {errors.supportLevel && (
-          <p className="text-sm text-red-500 italic">{errors.supportLevel.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
     </div>
