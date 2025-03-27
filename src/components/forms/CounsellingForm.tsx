@@ -70,14 +70,17 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     
     // Track counselling form view when component mounts
     if (leadCategory) {
-      trackPixelEvent({
-        name: PIXEL_EVENTS.getPage3ViewEvent(leadCategory),
-        options: {
-          lead_category: leadCategory,
-          counsellor_name: counselorName,
-          form_loaded_timestamp: new Date().toISOString()
-        }
-      });
+      // Safe check - only call if function exists
+      if (PIXEL_EVENTS.getPage3ViewEvent) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.getPage3ViewEvent(leadCategory),
+          options: {
+            lead_category: leadCategory,
+            counsellor_name: counselorName,
+            form_loaded_timestamp: new Date().toISOString()
+          }
+        });
+      }
     }
   }, [leadCategory, counselorName]);
 
@@ -119,18 +122,6 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     if (date <= maxSelectableDate) {
       setSelectedDate(date);
       setSelectedTimeSlot(null); // Reset time slot when date changes
-      
-      // Track date selection event
-      if (leadCategory) {
-        trackPixelEvent({
-          name: PIXEL_EVENTS.getPage3DateSelectEvent(leadCategory),
-          options: {
-            lead_category: leadCategory,
-            counsellor_name: counselorName,
-            selected_date: date.toISOString().split('T')[0]
-          }
-        });
-      }
     }
   };
 
@@ -146,18 +137,6 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
       });
       setValue('selectedDate', formattedDate);
       setValue('selectedSlot', slot);
-      
-      // Track time slot selection event
-      if (leadCategory) {
-        trackPixelEvent({
-          name: PIXEL_EVENTS.getPage3TimeSelectEvent(leadCategory),
-          options: {
-            lead_category: leadCategory,
-            date_selected: formattedDate,
-            time_selected: slot
-          }
-        });
-      }
     }
   };
 

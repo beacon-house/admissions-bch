@@ -13,39 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-
-// Step 2: Academic Qualification Schema
-const academicDetailsSchema = z.object({
-  curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
-  schoolName: z.string().min(2, 'School name is required'),
-  gradeFormat: z.enum(['gpa', 'percentage']),
-  gpaValue: z.string().optional(),
-  percentageValue: z.string().optional(),
-  targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
-  preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
-  scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
-  contactMethods: z.object({
-    call: z.boolean().default(false),
-    callNumber: z.string().optional(),
-    whatsapp: z.boolean().default(true),
-    whatsappNumber: z.string().optional(),
-    email: z.boolean().default(true),
-    emailAddress: z.string().email().optional(),
-  }).refine(data => data.call || data.whatsapp || data.email, {
-    message: "Please select at least one contact method",
-    path: ['contact']
-  }),
-}).refine(data => {
-  if (data.gradeFormat === 'gpa') {
-    return !!data.gpaValue;
-  } else if (data.gradeFormat === 'percentage') {
-    return !!data.percentageValue;
-  }
-  return true;
-}, {
-  message: "Please provide your grade in the selected format",
-  path: ['gpaValue'],
-});
+import { academicDetailsSchema } from '@/schemas/form';
 
 export type AcademicDetailsData = z.infer<typeof academicDetailsSchema>;
 
@@ -146,6 +114,37 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     onSubmit(data);
   };
 
+  // Helper function to handle numeric input with optional decimal point
+  const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, min: number, max: number) => {
+    const value = e.target.value;
+    
+    // Allow empty input for user to type
+    if (value === '') return;
+    
+    // Allow a single decimal point
+    if (value === '.') {
+      e.target.value = '.';
+      return;
+    }
+    
+    // Validate as a number with optional single decimal point
+    const regex = /^\d*\.?\d*$/;
+    if (!regex.test(value)) {
+      e.target.value = value.slice(0, -1);
+      return;
+    }
+    
+    // Check if it's within range when it's a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      if (numValue < min) {
+        e.target.value = min.toString();
+      } else if (numValue > max) {
+        e.target.value = max.toString();
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="flex items-center space-x-2 mb-6">
@@ -200,6 +199,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
               type="button"
               onClick={() => {
                 setValue('gradeFormat', 'gpa');
+                setValue('percentageValue', ''); // Clear the other field
                 clearErrors('gpaValue');
               }}
               className={cn(
@@ -215,6 +215,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
               type="button"
               onClick={() => {
                 setValue('gradeFormat', 'percentage');
+                setValue('gpaValue', ''); // Clear the other field
                 clearErrors('percentageValue');
               }}
               className={cn(
@@ -235,21 +236,15 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                 <Input
                   type="text"
                   inputMode="decimal"
-                  pattern="[0-9]*[.]?[0-9]*"
                   placeholder="Enter GPA value (e.g. 8.5)"
                   id="gpaValue"
                   {...register('gpaValue')}
                   className="h-12 bg-white"
                   suffix="/10"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '' || (parseFloat(value) >= 1 && parseFloat(value) <= 10)) {
-                      e.target.value = value;
-                    }
-                  }}
+                  onChange={(e) => handleNumericInput(e, 1, 10)}
                 />
               {errors.gpaValue && (
-                <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
+                <p className="text-sm text-red-500 italic">{errors.gpaValue.message}</p>
               )}
             </div>
           ) : (
@@ -258,21 +253,15 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
                 <Input
                   type="text"
                   inputMode="decimal"
-                  pattern="[0-9]*[.]?[0-9]*"
                   placeholder="Enter percentage (e.g. 85)"
                   id="percentageValue"
                   {...register('percentageValue')}
                   className="h-12 bg-white"
                   suffix="%"
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (value === '' || (parseFloat(value) >= 1 && parseFloat(value) <= 100)) {
-                      e.target.value = value;
-                    }
-                  }}
+                  onChange={(e) => handleNumericInput(e, 1, 100)}
                 />
               {errors.percentageValue && (
-                <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
+                <p className="text-sm text-red-500 italic">{errors.percentageValue.message}</p>
               )}
             </div>
           )}

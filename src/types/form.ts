@@ -8,12 +8,14 @@ export const SCHOLARSHIP_REQUIREMENTS = ['scholarship_optional', 'partial_schola
 export const FORM_FILLER_TYPES = ['parent', 'student'] as const;
 export const TARGET_UNIVERSITY_RANKS = ['top_20', 'top_50', 'top_100', 'any_good'] as const;
 
+// Grade format - shared between masters and regular form
+export const GRADE_FORMAT_OPTIONS = ['gpa', 'percentage'] as const;
+
 // Masters-specific enums
 export const INTAKE_OPTIONS = ['aug_sept_2025', 'jan_aug_2026', 'jan_aug_2027', 'other'] as const;
 export const GRADUATION_STATUS_OPTIONS = ['2025', '2026', '2027', 'others', 'graduated'] as const;
 export const WORK_EXPERIENCE_OPTIONS = ['0_years', '1_2_years', '3_5_years', '6_plus_years'] as const;
 export const ENTRANCE_EXAM_OPTIONS = ['gre', 'gmat', 'planning', 'not_required'] as const;
-export const GRADE_FORMAT_OPTIONS = ['gpa', 'percentage'] as const;
 
 // New masters-specific enums
 export const APPLICATION_PREPARATION_OPTIONS = [
@@ -65,7 +67,7 @@ export const NURTURE_SUBCATEGORIES = ['nurture-success', 'nurture-no-booking'] a
 export type NurtureSubcategory = typeof NURTURE_SUBCATEGORIES[number];
 
 // Lead Categories
-export const LEAD_CATEGORIES = ['BCH', 'lum-l1', 'lum-l2', 'NURTURE', 'masters-l1', 'masters-l2', 'DROP'] as const;
+export const LEAD_CATEGORIES = ['bch', 'lum-l1', 'lum-l2', 'nurture', 'masters-l1', 'masters-l2', 'drop'] as const;
 export type LeadCategory = typeof LEAD_CATEGORIES[number];
 
 // Base form interfaces
@@ -94,10 +96,16 @@ export interface ContactMethods {
   emailAddress?: string;
 }
 
+// Common grade format interface
+export interface GradeFormatData {
+  gradeFormat: typeof GRADE_FORMAT_OPTIONS[number];
+  gpaValue?: string;
+  percentageValue?: string;
+}
+
 export interface AcademicFormData {
   curriculumType: typeof CURRICULUM_TYPES[number];
   schoolName: string;
-  academicPerformance: typeof ACADEMIC_PERFORMANCES[number];
   targetUniversityRank: typeof TARGET_UNIVERSITY_RANKS[number];
   preferredCountries: string[];
   scholarshipRequirement: typeof SCHOLARSHIP_REQUIREMENTS[number];
@@ -111,9 +119,6 @@ export interface MastersAcademicFormData {
   graduationStatus: typeof GRADUATION_STATUS_OPTIONS[number];
   graduationYear?: string;
   workExperience: typeof WORK_EXPERIENCE_OPTIONS[number];
-  gradeFormat: typeof GRADE_FORMAT_OPTIONS[number];
-  gpaValue?: string;
-  percentageValue?: string;
   entranceExam: typeof ENTRANCE_EXAM_OPTIONS[number];
   examScore?: string;
   fieldOfStudy: string;
@@ -147,6 +152,7 @@ export interface CounsellingFormData {
 
 // Combined form data type
 export type CompleteFormData = BaseFormData & 
+  GradeFormatData &
   (AcademicFormData | MastersAcademicFormData) & {
     lead_category?: LeadCategory;
     extendedNurture?: ExtendedNurtureFormData;

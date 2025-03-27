@@ -155,9 +155,19 @@ export default function FormContainer() {
         });
       }
       
-      // Different flows based on lead category
-      if (leadCategory === 'nurture') {
-        // For NURTURE leads, we now show an extended form instead of submitting directly
+      // Different flows based on lead category and grade
+      if (leadCategory === 'nurture' && formData.currentGrade === 'masters') {
+        // For masters nurture leads, submit the form directly without showing extended nurture form
+        setSubmitting(true);
+        await submitFormData({
+          ...formData,
+          ...data,
+          lead_category: leadCategory
+        }, 2, startTime, true);
+        setSubmitting(false);
+        setSubmitted(true);
+      } else if (leadCategory === 'nurture') {
+        // For non-masters NURTURE leads, show extended form
         window.scrollTo(0, 0);
         // Show nurture-specific evaluation animation
         setSubmitting(true);
@@ -192,19 +202,19 @@ export default function FormContainer() {
     }
   };
 
-  const onSubmitExtendedNurture = (data: ExtendedNurtureData) => {
+  const onSubmitExtendedNurture = async (data: ExtendedNurtureData) => {
     try {
       window.scrollTo(0, 0);
       
-      // Re-categorize the lead based on Extended Nurture form responses
+      // Re-categorize the lead based on extended nurture form responses
       const recategorizedLeadCategory = determineLeadCategory(
         formData.currentGrade!,
         formData.formFillerType!,
         formData.scholarshipRequirement!,
         formData.curriculumType!,
         formData.targetUniversityRank,
-        undefined, // gpaValue
-        undefined, // percentageValue
+        formData.gpaValue,
+        formData.percentageValue,
         undefined, // intake
         undefined, // applicationPreparation
         undefined, // targetUniversities
@@ -217,7 +227,7 @@ export default function FormContainer() {
         lead_category: recategorizedLeadCategory,
         extendedNurture: {
           ...data,
-          nurtureSubcategory: 'nurture-success' // This is now determined by re-categorization
+          nurtureSubcategory: recategorizedLeadCategory === 'nurture' ? 'nurture-no-booking' : 'nurture-success'
         }
       });
       
@@ -225,7 +235,7 @@ export default function FormContainer() {
       if (recategorizedLeadCategory === 'nurture') {
         // Submit the form directly
         setSubmitting(true);
-        submitFormData({
+        await submitFormData({
           ...formData,
           lead_category: recategorizedLeadCategory,
           extendedNurture: {
@@ -236,8 +246,7 @@ export default function FormContainer() {
         setSubmitting(false);
         setSubmitted(true);
       } else {
-        // For bch, lum-l1, lum-l2 categories, proceed to counselling form
-        // Proceed to counselling form
+        // For other categories (bch, lum-l1, lum-l2), proceed to counselling form
         setStep(3);
       }
     } catch (error) {
@@ -484,9 +493,7 @@ export default function FormContainer() {
           {currentStep === 2 && isMastersApplication && (
             <MastersAcademicDetailsForm
               onSubmit={onSubmitStep2}
-              onBack={() => {
-                setStep(1);
-              }}
+              onBack={() => setStep(1)}
               defaultValues={formData}
             />
           )}
@@ -494,19 +501,15 @@ export default function FormContainer() {
           {currentStep === 2 && !isMastersApplication && (
             <AcademicDetailsForm
               onSubmit={onSubmitStep2}
-              onBack={() => {
-                setStep(1);
-              }}
+              onBack={() => setStep(1)}
               defaultValues={formData}
             />
           )}
 
-          {currentStep === 2.5 && (
+          {currentStep === 2.5 && formData.currentGrade !== 'masters' && formData.currentGrade !== '7_below' && (
             <ExtendedNurtureForm
               onSubmit={onSubmitExtendedNurture}
-              onBack={() => {
-                setStep(2);
-              }}
+              onBack={() => setStep(2)}
               defaultValues={formData.extendedNurture}
               currentGrade={formData.currentGrade}
               formFillerType={formData.formFillerType}

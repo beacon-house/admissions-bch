@@ -20,6 +20,7 @@ const EVENT_PREFIXES = {
   FORM_COMPLETE: 'admissions_form_complete',
   
   // Counselling Form Event (1)
+  PAGE3_VIEW: 'admissions_page3_view',
   PAGE3_SUBMIT: 'admissions_page3_submit',
   
   // Complete Flow Events (3)
@@ -33,7 +34,7 @@ export const getEventName = (prefix: string, leadCategory?: string): string => {
   const environment = import.meta.env.VITE_ENVIRONMENT?.trim() || 'dev';
   
   // For events that need lead category insertion
-  if (leadCategory && prefix === EVENT_PREFIXES.PAGE3_SUBMIT) {
+  if (leadCategory && (prefix === EVENT_PREFIXES.PAGE3_SUBMIT || prefix === EVENT_PREFIXES.PAGE3_VIEW)) {
     return `${prefix}_${leadCategory.toLowerCase()}_${environment}`;
   }
   
@@ -106,6 +107,7 @@ export const PIXEL_EVENTS = {
   FORM_COMPLETE: getEventName(EVENT_PREFIXES.FORM_COMPLETE),
   
   // Counselling Form Event (1)
+  getPage3ViewEvent: (leadCategory: string) => getEventName(EVENT_PREFIXES.PAGE3_VIEW, leadCategory),
   getPage3SubmitEvent: (leadCategory: string) => getEventName(EVENT_PREFIXES.PAGE3_SUBMIT, leadCategory),
   
   // Complete Flow Events (3)

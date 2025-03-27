@@ -44,15 +44,66 @@ const contactMethodsSchema = z.object({
   path: ['contact']
 });
 
+// Grade format schema - used by both forms
+const gradeFormatSchema = z.object({
+  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS),
+  gpaValue: z.string().optional(),
+  percentageValue: z.string().optional(),
+});
+
+// We need to apply custom validation separately to avoid shape.merge issues
+export const validateGradeFormat = (data: any, ctx?: z.RefinementCtx) => {
+  if (data.gradeFormat === 'gpa') {
+    if (!data.gpaValue || data.gpaValue.trim() === '') {
+      return { 
+        success: false, 
+        error: { gpaValue: ["GPA value is required"] }
+      };
+    } else {
+      const gpaValue = parseFloat(data.gpaValue);
+      if (isNaN(gpaValue) || gpaValue < 1 || gpaValue > 10) {
+        return { 
+          success: false, 
+          error: { gpaValue: ["GPA must be between 1 and 10"] }
+        };
+      }
+    }
+  } else if (data.gradeFormat === 'percentage') {
+    if (!data.percentageValue || data.percentageValue.trim() === '') {
+      return { 
+        success: false, 
+        error: { percentageValue: ["Percentage value is required"] }
+      };
+    } else {
+      const percentageValue = parseFloat(data.percentageValue);
+      if (isNaN(percentageValue) || percentageValue < 1 || percentageValue > 100) {
+        return { 
+          success: false, 
+          error: { percentageValue: ["Percentage must be between 1 and 100"] }
+        };
+      }
+    }
+  }
+  return { success: true };
+};
+
 // Academic Details Schema with communication preferences
 export const academicDetailsSchema = z.object({
   curriculumType: z.enum(CURRICULUM_TYPES),
   schoolName: z.string().min(2, 'School name is required'),
-  academicPerformance: z.enum(ACADEMIC_PERFORMANCES),
   targetUniversityRank: z.enum(TARGET_UNIVERSITY_RANKS),
   preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
   scholarshipRequirement: z.enum(SCHOLARSHIP_REQUIREMENTS),
   contactMethods: contactMethodsSchema,
+  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS),
+  gpaValue: z.string().optional(),
+  percentageValue: z.string().optional(),
+}).refine((data) => {
+  const result = validateGradeFormat(data);
+  return result.success;
+}, {
+  message: "Please provide valid grade information",
+  path: ['gradeFormat']
 });
 
 // Masters Academic Details Schema
@@ -63,9 +114,6 @@ export const mastersAcademicDetailsSchema = z.object({
   graduationStatus: z.enum(GRADUATION_STATUS_OPTIONS),
   graduationYear: z.string().min(1, 'Graduation year is required').optional().or(z.literal('')),
   workExperience: z.enum(WORK_EXPERIENCE_OPTIONS),
-  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS),
-  gpaValue: z.string().optional(),
-  percentageValue: z.string().optional(),
   entranceExam: z.enum(ENTRANCE_EXAM_OPTIONS),
   examScore: z.string().optional(),
   fieldOfStudy: z.string().min(1, 'Field of study is required'),
@@ -74,16 +122,15 @@ export const mastersAcademicDetailsSchema = z.object({
   supportLevel: z.enum(SUPPORT_LEVEL_OPTIONS),
   scholarshipRequirement: z.enum(SCHOLARSHIP_REQUIREMENTS),
   contactMethods: contactMethodsSchema,
-}).refine(data => {
-  if (data.gradeFormat === 'gpa') {
-    return !!data.gpaValue;
-  } else if (data.gradeFormat === 'percentage') {
-    return !!data.percentageValue;
-  }
-  return true;
+  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS),
+  gpaValue: z.string().optional(),
+  percentageValue: z.string().optional(),
+}).refine((data) => {
+  const result = validateGradeFormat(data);
+  return result.success;
 }, {
-  message: "Please provide your grade in the selected format",
-  path: ['gpaValue'],
+  message: "Please provide valid grade information",
+  path: ['gradeFormat']
 });
 
 // Extended Nurture Form Schema - Student
@@ -114,5 +161,6 @@ export const counsellingSchema = z.object({
 });
 
 // Complete Form Schema
-export const completeFormSchema = personalDetailsSchema
-  .merge(academicDetailsSchema);
+export const completeFormSchema = personalDetailsSchema.extend({
+  // Additional fields from academicDetailsSchema would be added if needed
+});
