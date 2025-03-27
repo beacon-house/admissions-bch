@@ -13,7 +13,6 @@ import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
 import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
 import { ExtendedNurtureData } from './ExtendedNurtureForm';
-import { NurtureSubcategory } from '@/types/form';
 
 export default function FormContainer() {
   const {
@@ -35,7 +34,6 @@ export default function FormContainer() {
   const [showNurtureAnimation, setShowNurtureAnimation] = useState(false);
   const [evaluatedLeadCategory, setEvaluatedLeadCategory] = useState<string | null>(null);
   const [compactForm, setCompactForm] = useState(false);
-  const [nurtureSubcategory, setNurtureSubcategory] = useState<NurtureSubcategory | null>(null);
 
   const onSubmitStep1 = async (data: any) => {
     try {
@@ -156,29 +154,32 @@ export default function FormContainer() {
       }
       
       // Different flows based on lead category and grade
-      if (leadCategory === 'nurture' && formData.currentGrade === 'masters') {
-        // For masters nurture leads, submit the form directly without showing extended nurture form
-        setSubmitting(true);
-        await submitFormData({
-          ...formData,
-          ...data,
-          lead_category: leadCategory
-        }, 2, startTime, true);
-        setSubmitting(false);
-        setSubmitted(true);
-      } else if (leadCategory === 'nurture') {
-        // For non-masters NURTURE leads, show extended form
-        window.scrollTo(0, 0);
-        // Show nurture-specific evaluation animation
-        setSubmitting(true);
-        setShowNurtureAnimation(true);
-        
-        setTimeout(() => {
-          setShowNurtureAnimation(false);
+      if (leadCategory === 'nurture') {
+        // Only show extended nurture form for grades 11 and 12
+        if (['11', '12'].includes(formData.currentGrade || '')) {
+          // For grade 11 or 12 NURTURE leads, show extended form
+          window.scrollTo(0, 0);
+          // Show nurture-specific evaluation animation
+          setSubmitting(true);
+          setShowNurtureAnimation(true);
+          
+          setTimeout(() => {
+            setShowNurtureAnimation(false);
+            setSubmitting(false);
+            // Go to the extended nurture form (Step 2.5)
+            setStep(2.5);
+          }, 10000); // 10 seconds for evaluation animation
+        } else {
+          // For all other grades (8, 9, 10, masters) with nurture category, submit directly
+          setSubmitting(true);
+          await submitFormData({
+            ...formData,
+            ...data,
+            lead_category: leadCategory
+          }, 2, startTime, true);
           setSubmitting(false);
-          // Go to the extended nurture form (Step 2.5)
-          setStep(2.5);
-        }, 10000); // 10 seconds for evaluation animation
+          setSubmitted(true);
+        }
       } else {
         // For non-NURTURE leads, show the standard evaluation animation
         window.scrollTo(0, 0);
@@ -226,8 +227,7 @@ export default function FormContainer() {
       updateFormData({ 
         lead_category: recategorizedLeadCategory,
         extendedNurture: {
-          ...data,
-          nurtureSubcategory: recategorizedLeadCategory === 'nurture' ? 'nurture-no-booking' : 'nurture-success'
+          ...data
         }
       });
       
@@ -239,8 +239,7 @@ export default function FormContainer() {
           ...formData,
           lead_category: recategorizedLeadCategory,
           extendedNurture: {
-            ...data,
-            nurtureSubcategory: 'nurture-no-booking'
+            ...data
           }
         }, 2.5, startTime, true);
         setSubmitting(false);
@@ -506,7 +505,7 @@ export default function FormContainer() {
             />
           )}
 
-          {currentStep === 2.5 && formData.currentGrade !== 'masters' && formData.currentGrade !== '7_below' && (
+          {currentStep === 2.5 && ['11', '12'].includes(formData.currentGrade || '') && (
             <ExtendedNurtureForm
               onSubmit={onSubmitExtendedNurture}
               onBack={() => setStep(2)}

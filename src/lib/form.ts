@@ -83,9 +83,13 @@ export const submitFormData = async (
     
     // Additional form fields if available
     schoolName: data.schoolName,
-    academicPerformance: data.academicPerformance,
     targetUniversityRank: data.targetUniversityRank,
     preferredCountries: data.preferredCountries,
+    
+    // Add grade format data for ALL flows (masters and non-masters)
+    gradeFormat: data.gradeFormat,
+    gpaValue: data.gpaValue,
+    percentageValue: data.percentageValue,
     
     // Send original scholarship requirement value to webhook (not mapped)
     scholarshipRequirement: originalScholarshipRequirement,
@@ -101,9 +105,6 @@ export const submitFormData = async (
       graduationYear: data.graduationYear,
       workExperience: data.workExperience,
       fieldOfStudy: data.fieldOfStudy,
-      gradeFormat: data.gradeFormat,
-      gpaValue: data.gpaValue,
-      percentageValue: data.percentageValue,
       entranceExam: data.entranceExam,
       examScore: data.examScore,
       applicationPreparation: data.applicationPreparation,
@@ -115,15 +116,13 @@ export const submitFormData = async (
     ...(data.extendedNurture && {
       // Student-specific fields
       parentalSupport: data.extendedNurture.parentalSupport,
+      
+      // Unified for both student and parent
       partialFundingApproach: data.extendedNurture.partialFundingApproach,
       
-      // Parent-specific fields
-      financialPlanning: data.extendedNurture.financialPlanning,
+      // Renamed from gradeSpecificQuestion to strongProfileIntent
+      strongProfileIntent: data.extendedNurture.strongProfileIntent,
       
-      // Common fields
-      gradeSpecificAnswer: data.extendedNurture.gradeSpecificQuestion,
-      targetUniversitiesList: data.extendedNurture.targetUniversities,
-      nurtureSubcategory: data.extendedNurture.nurtureSubcategory,
       extendedFormCompleted: true
     }),
     

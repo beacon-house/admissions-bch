@@ -37,25 +37,24 @@ export const determineLeadCategory = (
   if (extendedNurtureData) {
     // Re-categorize based on form filler type and their answers
     if (formFillerType === 'parent') {
-      const { financialPlanning } = extendedNurtureData;
+      const { partialFundingApproach } = extendedNurtureData;
       
-      if (financialPlanning === 'savings') {
-        // Re-categorize as BCH or lum-l1 based on original logic, but ignore scholarshipRequirement
-        if (
-          ['9', '10'].includes(currentGrade) ||
-          (currentGrade === '11' && targetUniversityRank === 'top_20')
-        ) {
-          return 'bch';
-        } else if (['11', '12'].includes(currentGrade)) {
-          return 'lum-l1';
-        }
-      } else if (financialPlanning === 'education_loans') {
+      // Updated categorization based on new logic:
+      if (partialFundingApproach === 'accept_loans') {
+        return 'lum-l1';
+      } else if (partialFundingApproach === 'affordable_alternatives') {
         return 'lum-l2';
       } else {
-        // For external_scholarships, liquidate_investments, and no_specific_plans
+        // For defer_scholarships, only_full_funding
         return 'nurture';
       }
     } else if (formFillerType === 'student') {
+      // First check if parentalSupport is "would_join"
+      // If it's anything else, mark as nurture regardless of other answers
+      if (extendedNurtureData.parentalSupport !== 'would_join') {
+        return 'nurture';
+      }
+      
       const { partialFundingApproach } = extendedNurtureData;
       
       if (partialFundingApproach === 'accept_cover_remaining') {

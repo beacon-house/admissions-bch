@@ -3,22 +3,20 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Label } from '../ui/label';
-import { Input } from '../ui/input';
 import { ChevronLeft, ChevronRight, BookOpen, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 // Extended Nurture Form Schema
 const extendedNurtureSchema = z.object({
   // Shared fields between parent and student
-  gradeSpecificQuestion: z.string(),
-  targetUniversities: z.string().min(1, 'Please provide at least one interest'),
+  strongProfileIntent: z.string(),
   
   // Student-specific fields (optional when form filler is parent)
   parentalSupport: z.enum(['would_join', 'supportive_limited', 'handle_independently', 'not_discussed']).optional(),
   partialFundingApproach: z.enum(['accept_cover_remaining', 'defer_external_scholarships', 'affordable_alternatives', 'only_full_funding', 'need_to_ask']).optional(),
   
   // Parent-specific fields (optional when form filler is student)
-  financialPlanning: z.enum(['savings', 'education_loans', 'external_scholarships', 'liquidate_investments']).optional()
+  partialFundingApproach: z.enum(['accept_loans', 'defer_scholarships', 'affordable_alternatives', 'only_full_funding']).optional()
 });
 
 export type ExtendedNurtureData = z.infer<typeof extendedNurtureSchema>;
@@ -44,8 +42,8 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
       if (isParent) {
         // For parents, require parent-specific fields
         schema = schema.refine(
-          (data) => !!data.financialPlanning,
-          { message: "Please select a financial planning option", path: ["financialPlanning"] }
+          (data) => !!data.partialFundingApproach,
+          { message: "Please select a funding approach option", path: ["partialFundingApproach"] }
         );
       } else {
         // For students, require student-specific fields
@@ -81,52 +79,21 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
     }
   });
 
-  // Get the grade-specific question based on current grade (same for both parent and student)
-  const getGradeSpecificQuestion = () => {
+  // Get the profile interest question - now the same for both Grade 11 and 12
+  const getProfileInterestQuestion = () => {
     // The title prefix changes based on whether the form filler is a parent or student
-    if (currentGrade === '9' || currentGrade === '10') {
-      return {
-        title: isParent 
-          ? "Your child is starting their journey early – that's fantastic! Would you like help in building a strong profile?" 
-          : "You're starting your journey early – that's fantastic! Would you like help in building a strong profile?",
-        options: [
-          { value: 'interested_in_profile', label: 'Interested in doing relevant work to build strong profile' },
-          { value: 'academics_focus', label: 'Focus is on Academics, but will do the minimum needed to get an admit' }
-        ]
-      };
-    } else if (currentGrade === '11') {
-      return {
-        title: isParent
-          ? "Your child is in a critical phase of building their university profile. Would you like help in building a strong profile?"
-          : "You're in a critical phase of building your university profile. Would you like help in building a strong profile?",
-        options: [
-          { value: 'interested_in_profile', label: 'Interested in doing relevant work to build strong profile' },
-          { value: 'academics_focus', label: 'Focus is on Academics, will only do the minimum needed to get an admit' }
-        ]
-      };
-    } else if (currentGrade === '12') {
-      return {
-        title: `For ${isParent ? "your child's" : "your"} Grade 12 timeline:`,
-        options: [
-          { value: 'graduating_2024_25_fall_25', label: `${isParent ? "They're" : "I'm"} graduating in 2024-25 applying for Fall '25` },
-          { value: 'graduating_2024_25_fall_26', label: `${isParent ? "They're" : "I'm"} graduating in 2024-25 applying for Fall '26` },
-          { value: 'starting_grade_12_2025_26', label: `${isParent ? "They're" : "I'm"} starting Grade 12 in 2025-26` }
-        ]
-      };
-    }
-    
-    // Default option if grade doesn't match specific conditions
     return {
-      title: `What is ${isParent ? "your child's" : "your"} current academic timeline?`,
+      title: isParent
+        ? "Your child is in a critical phase of building their university profile. Would you like help in building a strong profile?"
+        : "You're in a critical phase of building your university profile. Would you like help in building a strong profile?",
       options: [
-        { value: 'preparing_applications', label: 'Currently preparing applications' },
-        { value: 'researching_options', label: 'Researching university options' },
-        { value: 'planning_ahead', label: 'Planning ahead for future applications' }
+        { value: 'interested_in_profile', label: 'Interested in doing relevant work to build strong profile' },
+        { value: 'academics_focus', label: 'Focus is on Academics, will only do the minimum needed to get an admit' }
       ]
     };
   };
 
-  const gradeQuestion = getGradeSpecificQuestion();
+  const profileQuestion = getProfileInterestQuestion();
 
   const handleBack = () => {
     window.scrollTo(0, 0);
@@ -134,8 +101,14 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
   };
 
   const handleFormSubmit = (data: ExtendedNurtureData) => {
+    // Map gradeSpecificQuestion to strongProfileIntent before submitting
+    const mapped = {
+      ...data,
+      strongProfileIntent: data.strongProfileIntent
+    };
+    
     window.scrollTo(0, 0);
-    onSubmit(data);
+    onSubmit(mapped);
   };
 
   return (
@@ -234,7 +207,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Can fund fully through our savings</span>
+                    <span className="text-sm">Accept and find ways to cover remaining costs using loans</span>
                   </div>
                 </label>
                 
@@ -258,7 +231,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Mainly through an education loan</span>
+                    <span className="text-sm">Consider more affordable university alternatives</span>
                   </div>
                 </label>
                 
@@ -270,7 +243,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">I require full scholarship support to proceed</span>
+                    <span className="text-sm">Would only proceed with full funding</span>
                   </div>
                 </label>
                 
@@ -299,75 +272,75 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
           <>
             {/* Financial Planning Question - Parent Only */}
             <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-              <Label className="text-sm font-medium text-primary">How do you plan to finance your child's international education? (This helps us customize our support to best fit your situation.)</Label>
+              <Label className="text-sm font-medium text-primary">While 100% scholarship is ideal, it is quite hard for undergrad applications unless your child has a stellar profile. If your preferred university offers admission with partial funding, what would be your approach?</Label>
               
               <div className="space-y-2 mt-3">
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <input
                     type="radio"
-                    {...register('financialPlanning')}
-                    value="savings"
+                    {...register('partialFundingApproach')}
+                    value="accept_loans"
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Can fund fully through our savings</span>
+                    <span className="text-sm">Accept and find ways to cover remaining costs using loans</span>
                   </div>
                 </label>
                 
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <input
                     type="radio"
-                    {...register('financialPlanning')}
-                    value="education_loans"
+                    {...register('partialFundingApproach')}
+                    value="defer_scholarships"
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Primarily through our savings, with a supplemental education loan as needed</span>
+                    <span className="text-sm">Defer to following year and apply for additional external scholarships</span>
                   </div>
                 </label>
                 
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <input
                     type="radio"
-                    {...register('financialPlanning')}
-                    value="external_scholarships"
+                    {...register('partialFundingApproach')}
+                    value="affordable_alternatives"
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">Mainly through an education loan</span>
+                    <span className="text-sm">Consider more affordable university alternatives</span>
                   </div>
                 </label>
                 
                 <label className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                   <input
                     type="radio"
-                    {...register('financialPlanning')}
-                    value="liquidate_investments"
+                    {...register('partialFundingApproach')}
+                    value="only_full_funding"
                     className="mt-0.5"
                   />
                   <div>
-                    <span className="text-sm">I require full scholarship support to proceed</span>
+                    <span className="text-sm">Would only proceed with full funding</span>
                   </div>
                 </label>
               </div>
               
-              {errors.financialPlanning && (
-                <p className="text-sm text-red-500 italic">{errors.financialPlanning?.message?.toString() || "Please select an option"}</p>
+              {errors.partialFundingApproach && (
+                <p className="text-sm text-red-500 italic">{errors.partialFundingApproach?.message?.toString() || "Please select an option"}</p>
               )}
             </div>
           </>
         )}
 
-        {/* Grade-Specific Question */}
+        {/* Profile Interest Question - for both parent and student */}
         <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-          <Label className="text-sm font-medium text-primary">{gradeQuestion.title}</Label>
+          <Label className="text-sm font-medium text-primary">{profileQuestion.title}</Label>
           
           <div className="space-y-2 mt-3">
-            {gradeQuestion.options.map((option) => (
+            {profileQuestion.options.map((option) => (
               <label key={option.value} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                 <input
                   type="radio"
-                  {...register('gradeSpecificQuestion')}
+                  {...register('strongProfileIntent')}
                   value={option.value}
                   className="mt-0.5"
                 />
@@ -378,28 +351,8 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
             ))}
           </div>
           
-          {errors.gradeSpecificQuestion && (
-            <p className="text-sm text-red-500 italic">{errors.gradeSpecificQuestion?.message?.toString() || "Please select an option"}</p>
-          )}
-        </div>
-
-        {/* Extracurricular Interests */}
-        <div className="space-y-3 bg-white rounded-lg p-5 shadow-sm border border-gray-100">
-          <Label htmlFor="targetUniversities" className="text-sm font-medium text-primary">
-            {isParent 
-              ? "Please tell us about your child's extra-curricular interests?" 
-              : "Please tell us about your extra-curricular interests?"}
-          </Label>
-          
-          <Input
-            id="targetUniversities"
-            {...register('targetUniversities')}
-            className="h-10 bg-white mt-3"
-            placeholder="E.g., sports, music, debate, programming, community service"
-          />
-          
-          {errors.targetUniversities && (
-            <p className="text-sm text-red-500 italic">{errors.targetUniversities?.message?.toString() || "Please provide at least one interest"}</p>
+          {errors.strongProfileIntent && (
+            <p className="text-sm text-red-500 italic">{errors.strongProfileIntent?.message?.toString() || "Please select an option"}</p>
           )}
         </div>
       </div>

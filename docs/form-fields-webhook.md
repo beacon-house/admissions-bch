@@ -58,10 +58,8 @@
 
 | Question/Field | Webhook Variable Name | Possible Values |
 |---------------|----------------------|-----------------|
-| Grade-specific question response | `gradeSpecificAnswer` | Values vary based on grade: `interested_in_profile`, `academics_focus`, `graduating_2024_25_fall_25`, `graduating_2024_25_fall_26`, `starting_grade_12_2025_26`, `preparing_applications`, `researching_options`, `planning_ahead` |
-| Extra-curricular interests | `targetUniversitiesList` | Free text |
+| Grade-specific question response | `strongProfileIntent` | Values vary based on grade: `interested_in_profile`, `academics_focus`, `graduating_2024_25_fall_25`, `graduating_2024_25_fall_26`, `starting_grade_12_2025_26`, `preparing_applications`, `researching_options`, `planning_ahead` |
 | Extended form completion status | `extendedFormCompleted` | `true` |
-| Nurture subcategory | `nurtureSubcategory` | `nurture-success`, `nurture-no-booking` |
 
 ### Student-Specific Fields
 
@@ -74,7 +72,7 @@
 
 | Question/Field | Webhook Variable Name | Possible Values |
 |---------------|----------------------|-----------------|
-| Financial planning approach | `financialPlanning` | `savings`, `education_loans`, `external_scholarships`, `liquidate_investments`, `no_specific_plans` |
+| Partial funding approach | `partialFundingApproach` | `accept_loans`, `defer_scholarships`, `affordable_alternatives`, `only_full_funding` |
 
 ## Step 3: Counselling Form
 
@@ -88,7 +86,7 @@
 
 | Question/Field | Webhook Variable Name | Possible Values |
 |---------------|----------------------|-----------------|
-| Lead Category | `lead_category` | `bch`, `lum-l1`, `lum-l2`, `nurture`, `masters-l1`, `masters-l2`, `drop`, `nurture-success`, `nurture-no-booking` |
+| Lead Category | `lead_category` | `bch`, `lum-l1`, `lum-l2`, `nurture`, `masters-l1`, `masters-l2`, `drop` |
 | Total Time Spent | `total_time_spent` | Number (seconds) |
 | Created At | `created_at` | ISO date string |
 | Step Completed | `step_completed` | `1`, `2`, `2.5`, `3` |

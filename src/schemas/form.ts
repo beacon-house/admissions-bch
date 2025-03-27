@@ -137,15 +137,13 @@ export const mastersAcademicDetailsSchema = z.object({
 export const extendedNurtureStudentSchema = z.object({
   parentalSupport: z.enum(PARENTAL_SUPPORT_OPTIONS),
   partialFundingApproach: z.enum(PARTIAL_FUNDING_APPROACH_OPTIONS),
-  gradeSpecificQuestion: z.string(),
-  targetUniversities: z.string().min(1, 'Please provide at least one interest')
+  strongProfileIntent: z.string()
 });
 
 // Extended Nurture Form Schema - Parent
 export const extendedNurtureParentSchema = z.object({
-  financialPlanning: z.enum(FINANCIAL_PLANNING_OPTIONS),
-  gradeSpecificQuestion: z.string(),
-  targetUniversities: z.string().min(1, 'Please provide at least one interest')
+  partialFundingApproach: z.enum(FINANCIAL_PLANNING_OPTIONS),
+  strongProfileIntent: z.string()
 });
 
 // Combined Extended Nurture Form Schema
