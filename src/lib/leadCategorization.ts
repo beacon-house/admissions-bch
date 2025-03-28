@@ -73,7 +73,7 @@ export const determineLeadCategory = (
       } else if (partialFundingApproach === 'defer_external_scholarships') {
         return 'lum-l2';
       } else {
-        // For affordable_alternatives, only_full_funding, and need_to_ask
+        // For affordable_alternatives, only_full_funding, and need_to_ask_parents
         return 'nurture';
       }
     }
