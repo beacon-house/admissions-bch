@@ -46,7 +46,10 @@ const contactMethodsSchema = z.object({
 
 // Grade format schema - used by both forms
 const gradeFormatSchema = z.object({
-  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS, { errorMap: () => ({ message: "Please answer this question" }) }),
+  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS, { 
+    required_error: "Please answer this question",
+    invalid_type_error: "Please answer this question"
+  }),
   gpaValue: z.string().optional(),
   percentageValue: z.string().optional(),
 });
@@ -95,15 +98,23 @@ export const academicDetailsSchema = z.object({
   preferredCountries: z.array(z.string()).min(1, "Please answer this question"),
   scholarshipRequirement: z.enum(SCHOLARSHIP_REQUIREMENTS, { errorMap: () => ({ message: "Please answer this question" }) }),
   contactMethods: contactMethodsSchema,
-  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS, { errorMap: () => ({ message: "Please answer this question" }) }),
+  gradeFormat: z.enum(GRADE_FORMAT_OPTIONS, { 
+    required_error: "Please answer this question",
+    invalid_type_error: "Please answer this question"
+  }),
   gpaValue: z.string().optional(),
   percentageValue: z.string().optional(),
 }).refine((data) => {
-  const result = validateGradeFormat(data);
-  return result.success;
+  if (data.gradeFormat === 'gpa' && (!data.gpaValue || data.gpaValue.trim() === '')) {
+    return false;
+  }
+  if (data.gradeFormat === 'percentage' && (!data.percentageValue || data.percentageValue.trim() === '')) {
+    return false;
+  }
+  return true;
 }, {
   message: "Please answer this question",
-  path: ['gradeFormat']
+  path: ['gpaValue', 'percentageValue']
 });
 
 // Masters Academic Details Schema

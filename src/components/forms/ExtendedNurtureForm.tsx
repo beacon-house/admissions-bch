@@ -9,14 +9,25 @@ import { cn } from '@/lib/utils';
 // Extended Nurture Form Schema
 const extendedNurtureSchema = z.object({
   // Shared fields between parent and student
-  strongProfileIntent: z.string(),
+  strongProfileIntent: z.string({ errorMap: () => ({ message: "Please answer this question" }) }),
   
   // Student-specific fields (optional when form filler is parent)
-  parentalSupport: z.enum(['would_join', 'supportive_limited', 'handle_independently', 'not_discussed']).optional(),
-  partialFundingApproach: z.enum(['accept_cover_remaining', 'defer_external_scholarships', 'affordable_alternatives', 'only_full_funding', 'need_to_ask']).optional(),
+  parentalSupport: z.enum(['would_join', 'supportive_limited', 'handle_independently', 'not_discussed'], { 
+    errorMap: () => ({ message: "Please answer this question" }) 
+  }).optional(),
   
-  // Parent-specific fields (optional when form filler is student)
-  partialFundingApproach: z.enum(['accept_loans', 'defer_scholarships', 'affordable_alternatives', 'only_full_funding']).optional()
+  // Using discriminated union approach to avoid field name conflict
+  partialFundingApproach: z.union([
+    // Student options including "need to ask parents"
+    z.enum(['accept_cover_remaining', 'defer_external_scholarships', 'affordable_alternatives', 'only_full_funding', 'need_to_ask_parents'], {
+      errorMap: () => ({ message: "Please answer this question" })
+    }),
+    
+    // Parent options (no "need to ask parents" option)
+    z.enum(['accept_loans', 'defer_scholarships', 'affordable_alternatives', 'only_full_funding'], {
+      errorMap: () => ({ message: "Please answer this question" })
+    })
+  ])
 });
 
 export type ExtendedNurtureData = z.infer<typeof extendedNurtureSchema>;
@@ -251,7 +262,7 @@ export function ExtendedNurtureForm({ onSubmit, onBack, defaultValues, currentGr
                   <input
                     type="radio"
                     {...register('partialFundingApproach')}
-                    value="need_to_ask"
+                    value="need_to_ask_parents"
                     className="mt-0.5"
                   />
                   <div>

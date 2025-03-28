@@ -51,7 +51,7 @@ export const PARTIAL_FUNDING_APPROACH_OPTIONS = [
   'defer_external_scholarships',
   'affordable_alternatives',
   'only_full_funding',
-  'need_to_ask'
+  'need_to_ask_parents'
 ] as const;
 
 // Updated financial planning options with new values
