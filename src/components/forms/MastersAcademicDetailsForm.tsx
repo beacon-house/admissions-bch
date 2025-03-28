@@ -1,6 +1,3 @@
-// This file is now refactored into smaller components in the masters/ directory
-// This is maintained as the main entry point that uses those components
-
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -43,16 +40,43 @@ const mastersAcademicDetailsSchema = z.object({
     message: "Please select at least one contact method",
     path: ['contact']
   }),
-}).refine(data => {
+}).superRefine((data, ctx) => {
+  // Validate based on selected grade format
   if (data.gradeFormat === 'gpa') {
-    return !!data.gpaValue;
+    if (!data.gpaValue || data.gpaValue.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "GPA value is required",
+        path: ['gpaValue']
+      });
+    } else {
+      const gpaValue = parseFloat(data.gpaValue);
+      if (isNaN(gpaValue) || gpaValue < 1 || gpaValue > 10) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "GPA must be between 1 and 10",
+          path: ['gpaValue']
+        });
+      }
+    }
   } else if (data.gradeFormat === 'percentage') {
-    return !!data.percentageValue;
+    if (!data.percentageValue || data.percentageValue.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Percentage value is required",
+        path: ['percentageValue']
+      });
+    } else {
+      const percentageValue = parseFloat(data.percentageValue);
+      if (isNaN(percentageValue) || percentageValue < 1 || percentageValue > 100) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Percentage must be between 1 and 100",
+          path: ['percentageValue']
+        });
+      }
+    }
   }
-  return true;
-}, {
-  message: "Please provide your grade in the selected format",
-  path: ['gpaValue'],
 });
 
 export type MastersAcademicDetailsData = z.infer<typeof mastersAcademicDetailsSchema>;

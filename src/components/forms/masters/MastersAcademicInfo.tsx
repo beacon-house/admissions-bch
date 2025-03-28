@@ -30,6 +30,37 @@ export function MastersAcademicInfo({
   selectedEntranceExam,
   control // Receive control from parent
 }: MastersAcademicInfoProps) {
+  // Helper function to handle numeric input with optional decimal point
+  const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, min: number, max: number) => {
+    const value = e.target.value;
+    
+    // Allow empty input for user to type
+    if (value === '') return;
+    
+    // Allow a single decimal point
+    if (value === '.') {
+      e.target.value = '.';
+      return;
+    }
+    
+    // Validate as a number with optional single decimal point
+    const regex = /^\d*\.?\d*$/;
+    if (!regex.test(value)) {
+      e.target.value = value.slice(0, -1);
+      return;
+    }
+    
+    // Check if it's within range when it's a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      if (numValue < min) {
+        e.target.value = min.toString();
+      } else if (numValue > max) {
+        e.target.value = max.toString();
+      }
+    }
+  };
+
   return (
     <div className="space-y-6 bg-white rounded-lg p-6 shadow-sm border border-gray-100">
       <h4 className="text-lg font-medium text-primary mb-4">Academic Information</h4>
@@ -42,6 +73,7 @@ export function MastersAcademicInfo({
             type="button"
             onClick={() => {
               setValue('gradeFormat', 'gpa');
+              setValue('percentageValue', ''); // Clear the other field
               clearErrors('gpaValue');
             }}
             className={cn(
@@ -57,6 +89,7 @@ export function MastersAcademicInfo({
             type="button"
             onClick={() => {
               setValue('gradeFormat', 'percentage');
+              setValue('gpaValue', ''); // Clear the other field
               clearErrors('percentageValue');
             }}
             className={cn(
@@ -77,22 +110,15 @@ export function MastersAcademicInfo({
               <Input
                 type="text"
                 inputMode="decimal"
-                pattern="[0-9]*[.]?[0-9]*"
                 placeholder="Enter GPA value (e.g. 8.5)"
                 id="gpaValue"
                 {...register('gpaValue')}
                 className="h-12 bg-white"
                 suffix="/10"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseFloat(value) >= 0 && parseFloat(value) <= 10)) {
-                    e.target.value = value;
-                  }
-                }}
-                suffix="/10"
+                onChange={(e) => handleNumericInput(e, 1, 10)}
               />
             {errors.gpaValue && (
-              <p className="text-sm text-red-500 italic">{errors.gpaValue.message || "Please provide your GPA"}</p>
+              <p className="text-sm text-red-500 italic">{errors.gpaValue.message}</p>
             )}
           </div>
         ) : (
@@ -100,23 +126,16 @@ export function MastersAcademicInfo({
             <Label htmlFor="percentageValue" className="text-gray-700">Percentage</Label>
               <Input
                 type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+                inputMode="decimal"
                 placeholder="Enter percentage (e.g. 85)"
                 id="percentageValue"
                 {...register('percentageValue')}
                 className="h-12 bg-white"
                 suffix="%"
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === '' || (parseInt(value) >= 0 && parseInt(value) <= 100)) {
-                    e.target.value = value;
-                  }
-                }}
-                suffix="%"
+                onChange={(e) => handleNumericInput(e, 1, 100)}
               />
             {errors.percentageValue && (
-              <p className="text-sm text-red-500 italic">{errors.percentageValue.message || "Please provide your percentage"}</p>
+              <p className="text-sm text-red-500 italic">{errors.percentageValue.message}</p>
             )}
           </div>
         )}

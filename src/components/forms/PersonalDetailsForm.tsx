@@ -62,7 +62,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           </SelectContent>
         </Select>
         {errors.formFillerType && (
-          <p className="text-sm text-red-500 italic">{errors.formFillerType.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
 
@@ -83,7 +83,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           </SelectContent>
         </Select>
         {errors.currentGrade && (
-          <p className="text-sm text-red-500 italic">{errors.currentGrade.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
 
@@ -100,7 +100,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             )}
           />
           {errors.studentFirstName && (
-            <p className="text-sm text-red-500 italic">{errors.studentFirstName.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -116,7 +116,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             )}
           />
           {errors.studentLastName && (
-            <p className="text-sm text-red-500 italic">{errors.studentLastName.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
       </div>
@@ -133,7 +133,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           )}
         />
         {errors.parentName && (
-          <p className="text-sm text-red-500 italic">{errors.parentName.message}</p>
+          <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
       </div>
 
@@ -151,7 +151,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             )}
           />
           {errors.email && (
-            <p className="text-sm text-red-500 italic">{errors.email.message}</p>
+            <p className="text-sm text-red-500 italic">Please enter a valid email address</p>
           )}
         </div>
 
@@ -167,7 +167,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
             )}
           />
           {errors.phoneNumber && (
-            <p className="text-sm text-red-500 italic">{errors.phoneNumber.message}</p>
+            <p className="text-sm text-red-500 italic">Please enter a valid 10-digit phone number</p>
           )}
           <div className="mt-2">
             <label className="flex items-center space-x-2 text-sm text-gray-600">

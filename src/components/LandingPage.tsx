@@ -12,7 +12,13 @@ export default function LandingPage() {
   const handleScrollToForm = () => {
     trackPixelEvent({
       name: PIXEL_EVENTS.CTA_HERO,
-      options: { button: 'request_evaluation' }
+      options: { 
+        button: 'request_evaluation',
+        location: 'hero_section',
+        device_type: window.innerWidth < 768 ? 'mobile' : 'desktop',
+        scroll_position: window.scrollY,
+        timestamp: new Date().toISOString()
+      }
     });
     
     navigate('/application-form');
@@ -331,6 +337,7 @@ export default function LandingPage() {
             <button 
               onClick={handleScrollToForm}
               className="bg-accent text-primary px-8 py-4 rounded-lg text-xl font-semibold hover:bg-accent-light transition-all duration-300 shadow-xl hover:shadow-2xl"
+              data-cta="footer"
             >
               Request an Evaluation
             </button>

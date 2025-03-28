@@ -6,6 +6,7 @@ import { Calendar, Award, ChevronRight, Clock, Linkedin } from 'lucide-react';
 import { Label } from '../ui/label';
 import { LeadCategory } from '@/types/form';
 import { cn } from '@/lib/utils';
+import { trackPixelEvent, PIXEL_EVENTS } from '@/lib/pixel';
 
 // Step 3: Counselling Booking Schema
 const counsellingSchema = z.object({
@@ -22,7 +23,7 @@ interface CounsellingFormProps {
 
 export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps) {
   // Determine which counselor to show based on lead category
-  const isBCH = leadCategory === 'BCH';
+  const isBCH = leadCategory === 'bch';
   const counselorName = isBCH ? "Viswanathan" : "Karthik Lakshman";
   const counselorImage = isBCH ? "/vishy.png" : "/karthik.png";
   const linkedinUrl = isBCH 
@@ -66,7 +67,22 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     
     // Default to selecting today
     setSelectedDate(today);
-  }, []);
+    
+    // Track counselling form view when component mounts
+    if (leadCategory) {
+      // Safe check - only call if function exists
+      if (PIXEL_EVENTS.getPage3ViewEvent) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.getPage3ViewEvent(leadCategory),
+          options: {
+            lead_category: leadCategory,
+            counsellor_name: counselorName,
+            form_loaded_timestamp: new Date().toISOString()
+          }
+        });
+      }
+    }
+  }, [leadCategory, counselorName]);
 
   // Generate available time slots (10 AM to 8 PM, except 2-3 PM)
   // Filter out slots that are less than 2 hours from current time

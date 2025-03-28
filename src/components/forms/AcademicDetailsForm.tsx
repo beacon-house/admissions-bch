@@ -13,27 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-
-// Step 2: Academic Qualification Schema
-const academicDetailsSchema = z.object({
-  curriculumType: z.enum(['IB', 'IGCSE', 'CBSE', 'ICSE', 'State_Boards', 'Others']),
-  schoolName: z.string().min(2, 'School name is required'),
-  academicPerformance: z.enum(['top_5', 'top_10', 'top_25', 'others']),
-  targetUniversityRank: z.enum(['top_20', 'top_50', 'top_100', 'any_good']),
-  preferredCountries: z.array(z.string()).min(1, 'Please select at least one preferred destination'),
-  scholarshipRequirement: z.enum(['scholarship_optional', 'partial_scholarship', 'full_scholarship']),
-  contactMethods: z.object({
-    call: z.boolean().default(false),
-    callNumber: z.string().optional(),
-    whatsapp: z.boolean().default(true),
-    whatsappNumber: z.string().optional(),
-    email: z.boolean().default(true),
-    emailAddress: z.string().email().optional(),
-  }).refine(data => data.call || data.whatsapp || data.email, {
-    message: "Please select at least one contact method",
-    path: ['contact']
-  }),
-});
+import { academicDetailsSchema } from '@/schemas/form';
 
 export type AcademicDetailsData = z.infer<typeof academicDetailsSchema>;
 
@@ -55,10 +35,13 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     formState: { errors },
     setValue,
     getValues,
+    watch,
+    clearErrors,
   } = useForm<AcademicDetailsData>({
     resolver: zodResolver(academicDetailsSchema),
     defaultValues: {
       ...defaultValues,
+      gradeFormat: defaultValues?.gradeFormat || 'gpa',
       contactMethods: {
         call: defaultValues?.contactMethods?.call || false,
         callNumber: defaultValues?.contactMethods?.callNumber || defaultValues?.phoneNumber || '',
@@ -69,6 +52,9 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
       }
     }
   });
+
+  // Watch gradeFormat to update UI
+  const gradeFormat = watch('gradeFormat');
 
   // Pre-fill contact methods with user data from step 1
   useEffect(() => {
@@ -128,6 +114,37 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
     onSubmit(data);
   };
 
+  // Helper function to handle numeric input with optional decimal point
+  const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, min: number, max: number) => {
+    const value = e.target.value;
+    
+    // Allow empty input for user to type
+    if (value === '') return;
+    
+    // Allow a single decimal point
+    if (value === '.') {
+      e.target.value = '.';
+      return;
+    }
+    
+    // Validate as a number with optional single decimal point
+    const regex = /^\d*\.?\d*$/;
+    if (!regex.test(value)) {
+      e.target.value = value.slice(0, -1);
+      return;
+    }
+    
+    // Check if it's within range when it's a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      if (numValue < min) {
+        e.target.value = min.toString();
+      } else if (numValue > max) {
+        e.target.value = max.toString();
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
       <div className="flex items-center space-x-2 mb-6">
@@ -157,7 +174,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.curriculumType && (
-            <p className="text-sm text-red-500 italic">{errors.curriculumType.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -170,28 +187,83 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             className="h-12 bg-white"
           />
           {errors.schoolName && (
-            <p className="text-sm text-red-500 italic">{errors.schoolName.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
+        {/* Academic Grade Format Selection - New implementation */}
         <div className="space-y-2">
-          <Label>Academic Performance</Label>
-          <Select 
-            onValueChange={(value) => setValue('academicPerformance', value as AcademicDetailsData['academicPerformance'])}
-            defaultValue={defaultValues?.academicPerformance}
-          >
-            <SelectTrigger className="h-12 bg-white">
-              <SelectValue placeholder="Select your academic standing" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="top_5">Top 5% of class</SelectItem>
-              <SelectItem value="top_10">Top 10% of class</SelectItem>
-              <SelectItem value="top_25">Top 25% of class</SelectItem>
-              <SelectItem value="others">Others</SelectItem>
-            </SelectContent>
-          </Select>
-          {errors.academicPerformance && (
-            <p className="text-sm text-red-500 italic">{errors.academicPerformance.message}</p>
+          <Label className="text-gray-700">What was the student's GPA/Percentage in the most recent exam?</Label>
+          <div className="grid grid-cols-2 gap-4 mb-2">
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'gpa');
+                setValue('percentageValue', ''); // Clear the other field
+                clearErrors('gpaValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'gpa'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              GPA Format
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setValue('gradeFormat', 'percentage');
+                setValue('gpaValue', ''); // Clear the other field
+                clearErrors('percentageValue');
+              }}
+              className={cn(
+                "h-12 flex items-center justify-center border rounded-lg font-medium transition-colors",
+                gradeFormat === 'percentage'
+                  ? "bg-primary text-white border-primary"
+                  : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+              )}
+            >
+              Percentage Format
+            </button>
+          </div>
+
+          {/* Show appropriate input field based on selected format */}
+          {gradeFormat === 'gpa' ? (
+            <div className="space-y-2">
+              <Label htmlFor="gpaValue" className="text-gray-700">GPA (out of 10)</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Enter GPA value (e.g. 8.5)"
+                  id="gpaValue"
+                  {...register('gpaValue')}
+                  className="h-12 bg-white"
+                  suffix="/10"
+                  onChange={(e) => handleNumericInput(e, 1, 10)}
+                />
+              {errors.gpaValue && (
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="percentageValue" className="text-gray-700">Percentage</Label>
+                <Input
+                  type="text"
+                  inputMode="decimal"
+                  placeholder="Enter percentage (e.g. 85)"
+                  id="percentageValue"
+                  {...register('percentageValue')}
+                  className="h-12 bg-white"
+                  suffix="%"
+                  onChange={(e) => handleNumericInput(e, 1, 100)}
+                />
+              {errors.percentageValue && (
+                <p className="text-sm text-red-500 italic">Please answer this question</p>
+              )}
+            </div>
           )}
         </div>
 
@@ -212,7 +284,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             </SelectContent>
           </Select>
           {errors.targetUniversityRank && (
-            <p className="text-sm text-red-500 italic">{errors.targetUniversityRank.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 
@@ -222,7 +294,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
             Select your preferred destinations (includes typical budget ranges)
           </p>
           {errors.preferredCountries && (
-            <p className="text-sm text-red-500 italic mb-2">{errors.preferredCountries.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {[
@@ -298,7 +370,7 @@ export function AcademicDetailsForm({ onSubmit, onBack, defaultValues }: Academi
           </div>
           
           {errors.scholarshipRequirement && (
-            <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
+            <p className="text-sm text-red-500 italic">Please answer this question</p>
           )}
         </div>
 

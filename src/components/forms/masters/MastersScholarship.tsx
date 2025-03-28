@@ -56,7 +56,7 @@ export function MastersScholarship({ register, errors }: MastersScholarshipProps
       </div>
       
       {errors.scholarshipRequirement && (
-        <p className="text-sm text-red-500 italic">{errors.scholarshipRequirement.message}</p>
+        <p className="text-sm text-red-500 italic">Please answer this question</p>
       )}
     </div>
   );
