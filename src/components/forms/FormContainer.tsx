@@ -155,7 +155,7 @@ export default function FormContainer() {
       
       // Different flows based on lead category and grade
       if (leadCategory === 'nurture') {
-        // Only show extended nurture form for grades 11 and 12
+        // CHANGE: Only show extended nurture form for grades 11 and 12
         if (['11', '12'].includes(formData.currentGrade || '')) {
           // For grade 11 or 12 NURTURE leads, show extended form
           window.scrollTo(0, 0);

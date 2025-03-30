@@ -57,23 +57,25 @@ export const determineLeadCategory = (
       
       const { partialFundingApproach } = extendedNurtureData;
       
+      // CHANGE: If partialFundingApproach is 'accept_cover_remaining', always categorize as lum-l1 
+      // for grades 11 and 12, regardless of curriculum
       if (partialFundingApproach === 'accept_cover_remaining') {
-        // Re-categorize as BCH or lum-l1 based on original logic, but ignore scholarshipRequirement
+        // Still need to handle grades 9, 10 or grade 11 with top_20 target
         if (
           ['9', '10'].includes(currentGrade) ||
           (currentGrade === '11' && targetUniversityRank === 'top_20' && ['IB', 'IGCSE'].includes(curriculumType))
         ) {
           return 'bch';
-        } else if (
-          ['11', '12'].includes(currentGrade) && 
-          ['IB', 'IGCSE'].includes(curriculumType)
-        ) {
+        } else if (['11', '12'].includes(currentGrade)) {
+          // CHANGE: Now categorizing as lum-l1 regardless of curriculum type for grades 11/12
           return 'lum-l1';
         }
-      } else if (partialFundingApproach === 'defer_external_scholarships') {
+      } 
+      // CHANGE: Added 'affordable_alternatives' as condition for lum-l2
+      else if (partialFundingApproach === 'defer_external_scholarships' || partialFundingApproach === 'affordable_alternatives') {
         return 'lum-l2';
       } else {
-        // For affordable_alternatives, only_full_funding, and need_to_ask_parents
+        // For only_full_funding and need_to_ask_parents
         return 'nurture';
       }
     }
@@ -84,8 +86,9 @@ export const determineLeadCategory = (
   
   // If we don't have extended nurture data, continue with the original logic
   
-  // Global override: Full scholarship leads go to NURTURE by default
-  if (scholarshipRequirement === 'full_scholarship') {
+  // CHANGE: Modified global override to exclude masters applicants
+  // Global override: Full scholarship leads go to NURTURE by default (except masters)
+  if (scholarshipRequirement === 'full_scholarship' && currentGrade !== 'masters') {
     return 'nurture';
   }
   
