@@ -21,6 +21,12 @@ interface CounsellingFormProps {
   leadCategory?: LeadCategory;
 }
 
+// Define a slot interface with availability
+interface TimeSlot {
+  time: string;
+  available: boolean;
+}
+
 export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps) {
   // Determine which counselor to show based on lead category
   const isBCH = leadCategory === 'bch';
@@ -96,19 +102,41 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
     const currentHour = now.getHours();
     const minHour = isToday ? currentHour + 2 : 10; // If today, slots must be at least 2 hours from now
     
-    const slots = [];
+    // Generate all possible slots from 10 AM to 8 PM (except 2 PM)
+    const allSlots: TimeSlot[] = [];
     for (let hour = 10; hour <= 20; hour++) {
       // Skip the 2 PM slot (blackout period)
       if (hour !== 14) {
-        // Skip if the hour is less than minHour for today
-        if (!isToday || hour >= minHour) {
-          // Special case for 12 PM (noon)
-          const formattedHour = hour === 12 ? "12 PM" : (hour > 12 ? `${hour - 12} PM` : `${hour} AM`);
-          slots.push(formattedHour);
+        // Format the hour
+        const formattedHour = hour === 12 ? "12 PM" : (hour > 12 ? `${hour - 12} PM` : `${hour} AM`);
+        
+        // Check if slot is too soon for today
+        const isTooSoon = isToday && hour < minHour;
+        
+        // For Karthik's profile, check if this is an available slot based on day of week
+        let isAvailable = true;
+        
+        if (!isBCH && selectedDate) {
+          const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
+          
+          if (dayOfWeek === 0) { // Sunday
+            // Only 11 AM - 1 PM and 4 PM - 6 PM available
+            isAvailable = (hour >= 11 && hour <= 13) || (hour >= 16 && hour <= 18);
+          } else { // Monday - Saturday
+            // Only 11 AM - 2 PM and 4 PM - 8 PM available
+            isAvailable = (hour >= 11 && hour < 14) || (hour >= 16 && hour <= 20);
+          }
         }
+        
+        // Add the slot with availability info
+        allSlots.push({
+          time: formattedHour,
+          available: !isTooSoon && isAvailable
+        });
       }
     }
-    return slots;
+    
+    return allSlots;
   };
 
   const timeSlots = getTimeSlots();
@@ -330,20 +358,30 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                 <button
                   key={index}
                   type="button"
-                  onClick={() => handleTimeSlotSelect(slot)}
+                  onClick={() => slot.available && handleTimeSlotSelect(slot.time)}
+                  disabled={!slot.available}
                   className={cn(
-                    "w-full py-2 px-3 rounded-lg border-2 transition-colors flex justify-center items-center",
-                    selectedTimeSlot === slot
+                    "w-full py-2 px-3 rounded-lg border-2 transition-colors flex justify-between items-center",
+                    selectedTimeSlot === slot.time
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-gray-200 hover:border-gray-300"
+                      : slot.available
+                        ? "border-gray-200 hover:border-gray-300"
+                        : "border-gray-100 bg-gray-50 cursor-not-allowed"
                   )}
                 >
-                  <span className="font-medium text-center">{slot}</span>
-                  {selectedTimeSlot === slot && (
-                    <div className="ml-2 bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
+                  <span className={cn(
+                    "font-medium",
+                    !slot.available && "text-gray-400"
+                  )}>
+                    {slot.time}
+                  </span>
+                  {selectedTimeSlot === slot.time ? (
+                    <div className="bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
                       ✓
                     </div>
-                  )}
+                  ) : !slot.available ? (
+                    <span className="text-xs text-red-400 font-medium">Booked</span>
+                  ) : null}
                 </button>
               ))}
             </div>
@@ -354,20 +392,32 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                 <button
                   key={index}
                   type="button"
-                  onClick={() => handleTimeSlotSelect(slot)}
+                  onClick={() => slot.available && handleTimeSlotSelect(slot.time)}
+                  disabled={!slot.available}
                   className={cn(
-                    "py-3 px-4 rounded-lg border-2 transition-colors flex items-center justify-center",
-                    selectedTimeSlot === slot
+                    "py-3 px-4 rounded-lg border-2 transition-colors flex flex-col items-center justify-center relative",
+                    selectedTimeSlot === slot.time
                       ? "border-primary bg-primary/10 text-primary"
-                      : "border-gray-200 hover:border-gray-300"
+                      : slot.available
+                        ? "border-gray-200 hover:border-gray-300"
+                        : "border-gray-100 bg-gray-50 cursor-not-allowed"
                   )}
                 >
-                  <span className="font-medium">{slot}</span>
-                  {selectedTimeSlot === slot && (
-                    <div className="ml-2 bg-accent/20 text-primary px-2 py-1 rounded text-xs font-medium">
-                      ✓
+                  <span className={cn(
+                    "font-medium",
+                    !slot.available && "text-gray-400"
+                  )}>
+                    {slot.time}
+                  </span>
+                  {selectedTimeSlot === slot.time ? (
+                    <div className="mt-1 bg-accent/20 text-primary px-2 py-0.5 rounded text-xs font-medium">
+                      Selected
                     </div>
-                  )}
+                  ) : !slot.available ? (
+                    <div className="mt-1 bg-red-50 text-red-500 px-2 py-0.5 rounded text-xs font-medium">
+                      Booked
+                    </div>
+                  ) : null}
                 </button>
               ))}
             </div>
