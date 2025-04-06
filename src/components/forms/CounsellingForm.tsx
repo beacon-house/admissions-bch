@@ -119,7 +119,10 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
         if (!isBCH && selectedDate) {
           const dayOfWeek = selectedDate.getDay(); // 0 = Sunday, 1 = Monday, etc.
           
-          if (dayOfWeek === 0) { // Sunday
+          // If it's Karthik and it's Sunday, all slots should be unavailable
+          if (dayOfWeek === 0 && counselorName === "Karthik Lakshman") {
+            isAvailable = false;
+          } else if (dayOfWeek === 0) { // Sunday for non-Karthik counselors
             // Only 11 AM - 1 PM and 4 PM - 6 PM available
             isAvailable = (hour >= 11 && hour <= 13) || (hour >= 16 && hour <= 18);
           } else { // Monday - Saturday
