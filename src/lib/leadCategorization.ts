@@ -28,6 +28,11 @@ export const determineLeadCategory = (
   // New parameter for Extended Nurture Form data
   extendedNurtureData?: ExtendedNurtureFormData
 ): LeadCategory => {
+  // NEW RULE: Student-filled forms are always categorized as nurture
+  if (formFillerType === 'student') {
+    return 'nurture';
+  }
+
   // Filter out spam leads with unrealistic academic scores
   if (gpaValue === "10" || percentageValue === "100") {
     return 'nurture';

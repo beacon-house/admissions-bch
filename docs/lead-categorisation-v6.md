@@ -1,239 +1,108 @@
-# Lead Categorization Logic v6.0
+# Lead Categorization Logic v6.1
 
 ## Overview
-The lead categorization system efficiently segments incoming student applications into seven distinct categories: bch (premium), Luminaire Level 1 (lum-l1), Luminaire Level 2 (lum-l2), Masters Level 1 (masters-l1), Masters Level 2 (masters-l2), nurture (development), and drop (direct submission). The categorization includes spam filtering and is based on multiple factors including grade level, form filler type, academic preferences, and application preparation status.
+This version introduces two major updates to the lead categorization system:
 
-## Key Changes in v6.0
-- **Spam Lead Detection**: Leads with unrealistic academic scores (GPA = 10 or Percentage = 100) are now automatically categorized as "nurture" and their forms are submitted directly, bypassing counseling booking
-- **Form Flow Optimization**: Spam leads now follow a separate flow that bypasses the counseling form step
-- **Direct Submission for Spam Leads**: When identified as spam, the lead is categorized as "nurture" and the form is submitted directly after Step 2
+1. **All student-filled leads**, regardless of grade or academic level, are now **directly categorized as 'nurture'** and the form is submitted immediately after Step 2 (or Step 2B for Masters).
+2. **Extended Nurture Form (Step 2.5)** is now **only shown to parent-filled forms** in Grades 11 and 12 that were initially categorized as 'nurture'.
 
-## Categorization Process
-The lead categorization happens in three stages:
+The system continues to segment incoming student applications into seven distinct categories: bch (premium), Luminaire Level 1 (lum-l1), Luminaire Level 2 (lum-l2), Masters Level 1 (masters-l1), Masters Level 2 (masters-l2), nurture (development), and drop (direct submission).
 
-1. **Spam Detection**: After Step 2 (Academic Details Form)
-   - First check for unrealistic academic scores (GPA = 10 or Percentage = 100)
-   - If identified as spam, categorize as "nurture" and submit form directly
-   - This check happens before any other categorization logic
+## Categorization Process (Updated)
 
-2. **Initial Categorization**: After Step 2 (Academic Details Form)
-   - If not identified as spam, assigns one of seven categories based on form data from Steps 1 and 2
-   - If categorized as "nurture" AND in Grade 11 or 12, the user proceeds to Step 2.5 (Extended Nurture Form)
-   - If categorized as "nurture" BUT NOT in Grade 11 or 12, the form is submitted directly
+### Step 1: Student-Filled Form Detection (NEW GLOBAL RULE)
+* If `formFillerType = student` → categorize as `nurture` → **submit immediately**
+* This check applies **before any other categorization logic**, including spam detection and Masters-specific logic
 
-3. **Re-categorization**: After Step 2.5 (Extended Nurture Form) - only for "nurture" leads in Grades 11 and 12
-   - Based on extended form responses, the lead may be re-categorized to a higher priority category
-   - Leads remaining in "nurture" category have form submitted directly
-   - Leads re-categorized to other categories proceed to Step 3 (Counselling Form)
+### Step 2: Spam Detection
+* If GPA = 10 or Percentage = 100 → categorize as `nurture` → **submit immediately**
 
-## Form Flow by Lead Category
+### Step 3: Grade 7 or Below Detection
+* If grade is '7_below' → categorize as `drop` → **submit immediately after Step 1**
+
+### Step 4: Initial Categorization (Parent-Filled Only)
+Categorization logic is evaluated only if form was filled by a parent:
+
+**`bch`**:
+* Grade 9/10 parent-filled form with scholarship not required or partial
+* Grade 11 parent-filled form targeting top-20 universities with scholarship not required or partial
+
+**`lum-l1`**:
+* Grade 11 (not targeting top-20) or Grade 12 parent-filled form
+* Scholarship requirement: optional
+
+**`lum-l2`**:
+* Grade 11 or 12 parent-filled form
+* Scholarship requirement: partial
+
+**`masters-l1`**:
+* Grade = Masters
+* Application status: researching or taken exams
+* Target University Rank = top_20_50
+
+**`masters-l2`**:
+* Grade = Masters
+* Application status: researching or taken exams
+* Target University Rank = top_50_100 or partner_university
+
+**`nurture`** (default for all others):
+* Full scholarship required (non-Masters)
+* Masters with undecided application status or unsure about target universities
+* Any leads not qualifying for categories above
+
+### Step 5: Extended Nurture Form (Step 2.5)
+* Shown **only to parent-filled forms** where:
+  * Grade = 11 or 12
+  * Initially categorized as `nurture`
+
+### Step 6: Re-Categorization from Extended Nurture (Parent-Filled Only)
+
+**Based on partial funding approach:**
+* `accept_loans` → `lum-l1`
+* `affordable_alternatives` → `lum-l2`
+* Others → stay as `nurture`
+
+## Form Flow by Category
 
 ### Flow 1: Grade 7 or Below
-- Step 1 (Personal Details) → Direct Submission with "drop" category
-- Category: "drop"
+* Step 1 → submit immediately
+* Category: `drop`
 
-### Flow 2: Spam Leads
-- Step 1 (Personal Details) → Step 2 (Academic Details) → Direct Submission
-- Identified by GPA = 10 or Percentage = 100
-- Category: "nurture"
+### Flow 2: Student-Filled Leads (NEW)
+* Step 1 → Step 2 → submit immediately
+* Category: `nurture`
+* No Extended Nurture Form or Counseling Form is shown
 
-### Flow 3: BCH, Luminaire (L1/L2), Masters (L1/L2)
-- Step 1 (Personal Details) → Step 2 (Academic Details) → Step 3 (Counselling Form) → Submission
-- Category determined after Step 2
+### Flow 3: Spam Leads
+* Step 1 → Step 2 → submit immediately
+* Identified by GPA = 10 or Percentage = 100
+* Category: `nurture`
 
-### Flow 4: Nurture (Grades 8, 9, 10 or Masters)
-- Step 1 (Personal Details) → Step 2 (Academic Details) → Direct Submission
-- Category: "nurture"
+### Flow 4: Parent-Filled (bch, lum-l1/l2, masters-l1/l2)
+* Step 1 → Step 2 → Step 3 (Counseling) → Submit
+* Category determined after Step 2
 
-### Flow 5: Nurture (Grades 11, 12) Remaining Nurture
-- Step 1 (Personal Details) → Step 2 (Academic Details) → Step 2.5 (Extended Nurture) → Direct Submission
-- Category: "nurture" (both before and after Step 2.5)
+### Flow 5: Parent-Filled Nurture (Grades 11/12)
+* Step 1 → Step 2 → Step 2.5 (Extended Nurture) →
+  * If re-categorized → Step 3 → Submit
+  * If still nurture → Submit
 
-### Flow 6: Nurture (Grades 11, 12) Re-categorized
-- Step 1 (Personal Details) → Step 2 (Academic Details) → Step 2.5 (Extended Nurture) → Step 3 (Counselling Form) → Submission
-- Initial category: "nurture" (after Step 2)
-- Re-categorized to: "bch", "lum-l1", or "lum-l2" (after Step 2.5)
-
-## Categorization Factors
-The system evaluates the following key factors:
-
-1. **Academic Scores** (Spam Detection)
-   - GPA = 10 or Percentage = 100 → automatically categorized as "nurture"
-   - This check overrides all other categorization logic
-
-2. **Current Grade**
-   - Grade levels: 7 or below, 8, 9, 10, 11, 12, Masters
-   - Special handling for Masters applicants
-   - Early years (Grade 7 or below) categorized as "drop" and form is submitted directly after Step 1
-
-3. **Form Filler Type**
-   - `parent`: Parent filling the form
-   - `student`: Student filling the form
-
-4. **Scholarship Requirement**
-   - `scholarship_optional`: Not essential
-   - `partial_scholarship`: Partial support needed
-   - `full_scholarship`: Full support required
-
-5. **Curriculum Type**
-   - International: IB, IGCSE
-   - National: CBSE, ICSE, State Boards
-   - Others: Other curricula
-
-6. **Target University Rank**
-   - `top_20`: Top 20 universities
-   - `top_50`: Top 50 universities
-   - `top_100`: Top 100 universities
-   - `any_good`: Any good university
-
-7. **Masters-specific Factors**
-   - Application preparation status
-   - Target university tier
-   - Other factors considered but not currently primary decision points:
-     - Academic performance (GPA or percentage)
-     - Intake period
-     - Support level required
-
-8. **Extended Nurture Form Factors** (Grades 11 & 12 only)
-   - For parents: Financial planning approach
-   - For students: Parental support and partial funding approach
-   - Grade-specific responses
-   - These are used for re-categorization after Step 2.5
-
-## Global Rules (Override)
-1. **Spam Detection**: Any lead with GPA = 10 or Percentage = 100 is automatically categorized as "nurture"
-2. **Full Scholarship**:
-   - Any lead with `scholarship_requirement` = `full_scholarship` goes to "nurture" category BY DEFAULT
-   - **Exception**: Masters applicants with `full_scholarship` are NOT automatically categorized as "nurture"
-3. **Grade 7 or Below**: Always categorized as "drop"
-
-## Initial Categories and Qualification Criteria
-
-### 1. bch (Premium Category)
-Qualifies if ANY of these conditions are met:
-1. Grade 9 or 10 students where:
-   - Form filled by parents (`formFillerType` = 'parent')
-   - Scholarship requirement is NOT 'full_scholarship' (either 'scholarship_optional' or 'partial_scholarship')
-
-2. Grade 11 students where:
-   - Either:
-     - Form filled by parent (any curriculum) OR
-     - Form filled by student with IB/IGCSE curriculum only
-   - Scholarship requirement is NOT 'full_scholarship' (either 'scholarship_optional' or 'partial_scholarship')
-   - Target university rank is 'top_20'
-
-### 2. Luminaire Level 1 (lum-l1)
-Qualifies if ALL of these conditions are met:
-1. Scholarship requirement is 'scholarship_optional'
-2. And meets one of these criteria:
-   - Grade 11 students where:
-     - Either:
-       - Form filled by parent (any curriculum) OR
-       - Form filled by student with IB/IGCSE curriculum only
-     - Target university rank is NOT 'top_20' (this is critical as top_20 Grade 11 students go to bch)
-   - Grade 12 students where:
-     - Either:
-       - Form filled by parent (any curriculum) OR
-       - Form filled by student with IB/IGCSE curriculum only
-
-### 3. Luminaire Level 2 (lum-l2)
-Qualifies if ALL of these conditions are met:
-1. Scholarship requirement is 'partial_scholarship'
-2. Grade 11 or 12 students
-3. Either:
-   - Form filled by parent (any curriculum) OR
-   - Form filled by student with IB/IGCSE curriculum only
-
-### 4. Masters Level 1 (masters-l1)
-Qualifies if ALL these conditions are met:
-- Grade is 'masters'
-- Application preparation status is either:
-  - 'researching_now' OR
-  - 'taken_exams_identified_universities'
-- Target universities option: 'top_20_50' (Top 20-50 ranked global university)
-
-### 5. Masters Level 2 (masters-l2)
-Qualifies if ALL these conditions are met:
-- Grade is 'masters'
-- Application preparation status is either:
-  - 'researching_now' OR
-  - 'taken_exams_identified_universities'
-- Target universities option is either:
-  - 'top_50_100' (50-100 ranked universities) OR
-  - 'partner_university' (Partner University without GRE/GMAT)
-
-### 6. nurture Category
-Automatically assigned if ANY of these conditions are met:
-- GPA value is exactly "10" or percentage value is exactly "100" (spam detection)
-- Scholarship requirement is 'full_scholarship' AND grade is NOT 'masters'
-- Masters applicants who are undecided about applying ('undecided_need_help')
-- Masters applicants with target universities option: 'unsure'
-- Grade 11 or 12 students with non-IB/IGCSE curriculum and student form filler
-- Any other lead that doesn't match the above categories and isn't grade 7 or below
-
-### 7. drop Category
-Automatically assigned to:
-- Grade 7 or below students
-- Form is submitted directly after Step 1
-
-## Extended Nurture Form Handling (Only for Grades 11 & 12)
-
-### When Extended Nurture Form Is Shown
-The Extended Nurture Form (Step 2.5) is ONLY shown to leads that meet ALL of these criteria:
-- Categorized as "nurture" after Step 2
-- Current grade is either 11 or 12
-- All other "nurture" leads (Grades 8, 9, 10, Masters) submit directly
-
-### Re-categorization Logic (After Extended Nurture Form)
-
-#### Parent Re-categorization
-Based on partial funding approach:
-1. If `partialFundingApproach` = 'accept_loans':
-   - Re-categorize as "lum-l1"
-2. If `partialFundingApproach` = 'affordable_alternatives':
-   - Re-categorize as "lum-l2"
-3. For all other options ('defer_scholarships', 'only_full_funding'):
-   - Remain as "nurture"
-
-#### Student Re-categorization
-1. First check if `parentalSupport` is "would_join"
-   - If it's anything else, keep as "nurture" regardless of other answers
-2. If parental support is "would_join", then check `partialFundingApproach`:
-   - If 'accept_cover_remaining':
-     - Grade 9, 10, or Grade 11 with top_20 target and IB/IGCSE: re-categorize as "bch"
-     - Grade 11 or 12: re-categorize as "lum-l1" (regardless of curriculum type)
-   - If 'defer_external_scholarships' OR 'affordable_alternatives': re-categorize as "lum-l2"
-   - For other options ('only_full_funding', 'need_to_ask_parents'): remain as "nurture"
+### Flow 6: Parent-Filled Nurture (Grades 8/9/10 or Masters)
+* Step 1 → Step 2 → Submit
 
 ## Implementation Notes
-1. **Form Flow**:
-   - One-step process for Grade 7 or below (direct submission)
-   - Two-step process for "nurture" leads not in Grades 11-12
-   - Two-step process for spam leads (direct submission after Step 2)
-   - Three-step process for leads not categorized as "nurture"
-   - Four-step process for Grade 11-12 "nurture" leads re-categorized after Extended Nurture Form
-   - Progressive data collection with user-friendly experience
+1. **Form Flow Optimization**:
+   - Student-filled leads bypass both the Extended Nurture Form and Counseling Form
+   - Extended Nurture Form is shown only to parent-filled forms for Grades 11 and 12
+   - All relevant analytics and event tracking is preserved
 
-2. **UX Optimizations**:
-   - Evaluation animation prior to showing Extended Nurture Form
-   - Pre-filled fields based on existing user data
-   - Clear progress indication
+2. **Global Rule Order**:
+   - Student form filler check occurs first
+   - Spam detection occurs second
+   - Grade 7 or below check occurs third
+   - All other categorization logic applies only to parent-filled forms
 
-3. **Extended Form UI Enhancements**:
-   - Explanatory banner explaining why additional information is needed
-   - Different sets of questions for parent vs. student form fillers
-   - Grade-specific question variants
-
-4. **Analytics**:
-   - All form steps and categorization decisions are tracked for analysis
-   - Conversion tracking at each step of the process
-   - Detailed event data for optimization
-
-## Technical Implementation
-The lead categorization logic is implemented in `src/lib/leadCategorization.ts` with the `determineLeadCategory` function handling both spam detection, initial categorization, and re-categorization based on Extended Nurture Form data. The form flow control is managed in `src/components/forms/FormContainer.tsx`, with conditional logic to:
-
-1. Detect spam leads (GPA = 10 or Percentage = 100) immediately
-2. Submit spam leads directly with "nurture" category
-3. Show Extended Nurture Form only for Grade 11-12 nurture leads
-4. Submit directly for other nurture leads
-5. Handle re-categorization after Extended Nurture Form completion
+3. **Technical Implementation**:
+   - The lead categorization logic is implemented in `src/lib/leadCategorization.ts`
+   - Form flow control is managed in `src/components/forms/FormContainer.tsx`
+   - All Meta Pixel events defined in `src/lib/pixel.ts` are preserved unchanged
