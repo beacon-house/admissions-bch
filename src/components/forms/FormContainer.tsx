@@ -120,7 +120,9 @@ export default function FormContainer() {
             finalData.formFillerType,
             finalData.scholarshipRequirement,
             finalData.curriculumType,
-            finalData.targetUniversityRank
+            finalData.targetUniversityRank,
+            finalData.gpaValue,
+            finalData.percentageValue
           );
       
       // Save lead category to state
@@ -153,11 +155,26 @@ export default function FormContainer() {
         });
       }
       
+      // NEW: If form is filled by student, submit immediately regardless of other conditions
+      if (finalData.formFillerType === 'student') {
+        setSubmitting(true);
+        await submitFormData({
+          ...formData,
+          ...data,
+          lead_category: leadCategory
+        }, 2, startTime, true);
+        setSubmitting(false);
+        setSubmitted(true);
+        return;
+      }
+
       // Different flows based on lead category and grade
       if (leadCategory === 'nurture') {
-        // CHANGE: Only show extended nurture form for grades 11 and 12
-        if (['11', '12'].includes(formData.currentGrade || '')) {
-          // For grade 11 or 12 NURTURE leads, show extended form
+        // CHANGE: Only show extended nurture form for grades 11 and 12 AND parent form fillers
+        // AND if not a spam lead (gpa=10 or percentage=100)
+        const isSpamLead = finalData.gpaValue === "10" || finalData.percentageValue === "100";
+        if (!isSpamLead && ['11', '12'].includes(formData.currentGrade || '') && finalData.formFillerType === 'parent') {
+          // For grade 11 or 12 NURTURE leads with parent form fillers, show extended form
           window.scrollTo(0, 0);
           // Show nurture-specific evaluation animation
           setSubmitting(true);
