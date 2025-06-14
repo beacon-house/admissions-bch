@@ -1,5 +1,18 @@
+/**
+ * PersonalDetailsForm Component
+ * 
+ * Purpose: Handles the first step of the multi-step form for collecting personal details
+ * including form filler type, grade, student/parent information, and contact details.
+ * 
+ * Changes made:
+ * - Added Controller components for Select fields to ensure proper react-hook-form integration
+ * - Fixed validation issues with dropdown fields by making them fully controlled
+ * - Added areaOfResidence field as a mandatory text input
+ * - Updated schema to include areaOfResidence validation
+ */
+
 import React from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Input } from '../ui/input';
@@ -16,13 +29,18 @@ import { cn } from '@/lib/utils';
 
 // Step 1: Initial Contact Schema
 const personalDetailsSchema = z.object({
-  currentGrade: z.enum(['12', '11', '10', '9', '8', '7_below', 'masters']),
-  formFillerType: z.enum(['parent', 'student']),
-  studentFirstName: z.string().min(2, 'First name is required'),
-  studentLastName: z.string().min(1, 'Last name is required'),
-  parentName: z.string().min(2, 'Parent name is required'),
-  email: z.string().email('Invalid email address'),
-  phoneNumber: z.string().regex(/^[0-9]{10}$/, 'Invalid phone number'),
+  currentGrade: z.enum(['12', '11', '10', '9', '8', '7_below', 'masters'], {
+    errorMap: () => ({ message: "Please answer this question" })
+  }),
+  formFillerType: z.enum(['parent', 'student'], {
+    errorMap: () => ({ message: "Please answer this question" })
+  }),
+  studentFirstName: z.string().min(2, 'Please answer this question'),
+  studentLastName: z.string().min(1, 'Please answer this question'),
+  parentName: z.string().min(2, 'Please answer this question'),
+  email: z.string().email('Please enter a valid email address'),
+  phoneNumber: z.string().regex(/^[0-9]{10}$/, 'Please enter a valid 10-digit phone number'),
+  areaOfResidence: z.string().min(1, 'Please enter your area of residence'),
   whatsappConsent: z.boolean().default(true)
 });
 
@@ -38,7 +56,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
     register,
     handleSubmit,
     formState: { errors },
-    setValue,
+    control,
   } = useForm<PersonalDetailsData>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues
@@ -52,15 +70,21 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
       
       <div className="space-y-2">
         <Label>Are you the parent or the student?</Label>
-        <Select onValueChange={(value) => setValue('formFillerType', value as PersonalDetailsData['formFillerType'])}>
-          <SelectTrigger className="h-12 bg-white">
-            <SelectValue placeholder="Select who is filling the form" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="parent">I am the Parent</SelectItem>
-            <SelectItem value="student">I am the Student</SelectItem>
-          </SelectContent>
-        </Select>
+        <Controller
+          name="formFillerType"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger className="h-12 bg-white">
+                <SelectValue placeholder="Select who is filling the form" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="parent">I am the Parent</SelectItem>
+                <SelectItem value="student">I am the Student</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
         {errors.formFillerType && (
           <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
@@ -68,20 +92,26 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
 
       <div className="space-y-2">
         <Label>Grade in Academic Year 25-26</Label>
-        <Select onValueChange={(value) => setValue('currentGrade', value as PersonalDetailsData['currentGrade'])}>
-          <SelectTrigger className="h-12 bg-white">
-            <SelectValue placeholder="Select Grade in Academic Year 25-26" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="12">Grade 12</SelectItem>
-            <SelectItem value="11">Grade 11</SelectItem>
-            <SelectItem value="10">Grade 10</SelectItem>
-            <SelectItem value="9">Grade 9</SelectItem>
-            <SelectItem value="8">Grade 8</SelectItem>
-            <SelectItem value="7_below">Grade 7 or below</SelectItem>
-            <SelectItem value="masters">Apply for Masters</SelectItem>
-          </SelectContent>
-        </Select>
+        <Controller
+          name="currentGrade"
+          control={control}
+          render={({ field }) => (
+            <Select onValueChange={field.onChange} value={field.value}>
+              <SelectTrigger className="h-12 bg-white">
+                <SelectValue placeholder="Select Grade in Academic Year 25-26" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="12">Grade 12</SelectItem>
+                <SelectItem value="11">Grade 11</SelectItem>
+                <SelectItem value="10">Grade 10</SelectItem>
+                <SelectItem value="9">Grade 9</SelectItem>
+                <SelectItem value="8">Grade 8</SelectItem>
+                <SelectItem value="7_below">Grade 7 or below</SelectItem>
+                <SelectItem value="masters">Apply for Masters</SelectItem>
+              </SelectContent>
+            </Select>
+          )}
+        />
         {errors.currentGrade && (
           <p className="text-sm text-red-500 italic">Please answer this question</p>
         )}
@@ -134,6 +164,22 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
         />
         {errors.parentName && (
           <p className="text-sm text-red-500 italic">Please answer this question</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="areaOfResidence">Area of Residence</Label>
+        <Input
+          placeholder="Enter your city/town (e.g., Bengaluru, India)"
+          id="areaOfResidence"
+          {...register('areaOfResidence')}
+          className={cn(
+            "h-12 bg-white",
+            errors.areaOfResidence ? 'border-red-500 focus:border-red-500' : ''
+          )}
+        />
+        {errors.areaOfResidence && (
+          <p className="text-sm text-red-500 italic">Please enter your area of residence</p>
         )}
       </div>
 

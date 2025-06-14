@@ -78,6 +78,7 @@ export interface BaseFormData {
   parentName: string;
   email: string;
   phoneNumber: string;
+  areaOfResidence: string;
   whatsappConsent: boolean;
   currentGrade: typeof GRADE_LEVELS[number];
   formFillerType: typeof FORM_FILLER_TYPES[number];
