@@ -168,9 +168,9 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="areaOfResidence">Area of Residence</Label>
+        <Label htmlFor="areaOfResidence">School Location (City/Locality)</Label>
         <Input
-          placeholder="Enter your city/town (e.g., Bengaluru, India)"
+          placeholder="Enter student's school city/locality (e.g., Bengaluru, India)"
           id="areaOfResidence"
           {...register('areaOfResidence')}
           className={cn(
@@ -179,7 +179,7 @@ export function PersonalDetailsForm({ onSubmit, defaultValues }: PersonalDetails
           )}
         />
         {errors.areaOfResidence && (
-          <p className="text-sm text-red-500 italic">Please enter your area of residence</p>
+          <p className="text-sm text-red-500 italic">Please enter the student's school city/locality</p>
         )}
       </div>
 
