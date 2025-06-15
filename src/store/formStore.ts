@@ -8,10 +8,12 @@ interface FormState {
   isSubmitting: boolean;
   isSubmitted: boolean;
   startTime: number;
+  triggeredEvents: string[];
   setStep: (step: number) => void;
   updateFormData: (data: Partial<CompleteFormData>) => void;
   setSubmitting: (isSubmitting: boolean) => void;
   setSubmitted: (isSubmitted: boolean) => void;
+  addTriggeredEvent: (eventName: string) => void;
   resetForm: () => void;
   canProceed: (step: number) => boolean;
 }
@@ -22,6 +24,7 @@ export const useFormStore = create<FormState>((set, get) => ({
   isSubmitting: false,
   isSubmitted: false,
   startTime: Date.now(),
+  triggeredEvents: [],
   
   setStep: (step) => {
     set({ currentStep: step });
@@ -37,12 +40,17 @@ export const useFormStore = create<FormState>((set, get) => ({
   
   setSubmitted: (isSubmitted) => set({ isSubmitted }),
   
+  addTriggeredEvent: (eventName) => set((state) => ({
+    triggeredEvents: [...state.triggeredEvents, eventName]
+  })),
+  
   resetForm: () => set({
     currentStep: 1,
     formData: {},
     isSubmitting: false,
     isSubmitted: false,
-    startTime: Date.now()
+    startTime: Date.now(),
+    triggeredEvents: []
   }),
   
   canProceed: (step) => validateFormStep(step, get().formData)

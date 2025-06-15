@@ -24,7 +24,8 @@ export const submitFormData = async (
   data: Partial<CompleteFormData>,
   step: number,
   startTime: number,
-  isComplete: boolean = false
+  isComplete: boolean = false,
+  triggeredEvents: string[] = []
 ): Promise<Response> => {
   const webhookUrl = import.meta.env.VITE_REGISTRATION_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
@@ -76,6 +77,7 @@ export const submitFormData = async (
     parentName: data.parentName,
     email: data.email,
     phoneNumber: data.phoneNumber,
+    areaOfResidence: data.areaOfResidence,
     whatsappConsent: data.whatsappConsent,
     currentGrade: data.currentGrade,
     formFillerType: data.formFillerType,
@@ -135,6 +137,9 @@ export const submitFormData = async (
     counsellingTime: data.counselling?.selectedSlot || null,
     preferredContactMethods: preferredContactMethods.length > 0 ? preferredContactMethods : null,
     ...contactDetails,
+    
+    // Triggered events tracking
+    triggeredEvents: triggeredEvents.length > 0 ? triggeredEvents : null,
     
     // Metadata
     total_time_spent: currentTime,

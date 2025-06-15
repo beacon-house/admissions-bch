@@ -21,6 +21,7 @@ export default function FormContainer() {
     isSubmitting,
     isSubmitted,
     startTime,
+    triggeredEvents,
     setStep,
     updateFormData,
     setSubmitting,
@@ -52,6 +53,19 @@ export default function FormContainer() {
       });
       trackFormStepComplete(1);
       
+      // Track parent-specific event if form filler is parent
+      if (data.formFillerType === 'parent') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.PARENT_FORM_PAGE1,
+          options: { 
+            grade: data.currentGrade,
+            form_filler_type: data.formFillerType,
+            time_spent: Math.floor((Date.now() - startTime) / 1000),
+            time_of_day: new Date().getHours()
+          }
+        });
+      }
+      
       // If grade 7 or below, submit form immediately with DROP lead category
       if (data.currentGrade === '7_below') {
         setSubmitting(true);
@@ -66,7 +80,7 @@ export default function FormContainer() {
         updateFormData({ lead_category: leadCategory });
         
         // Submit form with lead category
-        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true);
+        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents);
         setSubmitting(false);
         setSubmitted(true);
         return;
@@ -162,7 +176,7 @@ export default function FormContainer() {
           ...formData,
           ...data,
           lead_category: leadCategory
-        }, 2, startTime, true);
+        }, 2, startTime, true, triggeredEvents);
         setSubmitting(false);
         setSubmitted(true);
         return;
@@ -193,7 +207,7 @@ export default function FormContainer() {
             ...formData,
             ...data,
             lead_category: leadCategory
-          }, 2, startTime, true);
+          }, 2, startTime, true, triggeredEvents);
           setSubmitting(false);
           setSubmitted(true);
         }
@@ -258,7 +272,7 @@ export default function FormContainer() {
           extendedNurture: {
             ...data
           }
-        }, 2.5, startTime, true);
+        }, 2.5, startTime, true, triggeredEvents);
         setSubmitting(false);
         setSubmitted(true);
       } else {
@@ -346,7 +360,7 @@ export default function FormContainer() {
       }
       
       // Submit all form data including counselling details
-      await submitFormData(finalData, 3, startTime, true);
+      await submitFormData(finalData, 3, startTime, true, triggeredEvents);
       
       setSubmitting(false);
       setSubmitted(true);

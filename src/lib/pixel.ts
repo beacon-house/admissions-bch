@@ -1,4 +1,5 @@
 import { trackEvent } from './analytics';
+import { useFormStore } from '@/store/formStore';
 
 // Types
 type PixelEvent = {
@@ -15,6 +16,7 @@ const EVENT_PREFIXES = {
   // Form Navigation Events (5)
   FORM_PAGE_VIEW: 'admissions_page_view',
   FORM_PAGE1: 'admissions_page1_continue',
+  PARENT_FORM_PAGE1: 'parent_admissions_page1_continue',
   FORM_PAGE2_NEXT_REGULAR: 'admissions_page2_next_regular',
   FORM_PAGE2_NEXT_MASTERS: 'admissions_page2_next_masters',
   FORM_COMPLETE: 'admissions_form_complete',
@@ -73,6 +75,15 @@ export const trackPixelEvent = (event: PixelEvent): void => {
 
     window.fbq('track', event.name, event.options);
     
+    // Add the triggered event to the form store
+    try {
+      const { addTriggeredEvent } = useFormStore.getState();
+      addTriggeredEvent(event.name);
+    } catch (error) {
+      // Silently handle if store is not available (e.g., on landing page)
+      console.debug('Form store not available for event tracking:', event.name);
+    }
+    
     // Also track in Google Analytics for consistency
     trackEvent(event.name, event.options);
   } catch (error) {
@@ -102,6 +113,7 @@ export const PIXEL_EVENTS = {
   // Form Navigation Events (5)
   FORM_PAGE_VIEW: getEventName(EVENT_PREFIXES.FORM_PAGE_VIEW),
   FORM_PAGE1: getEventName(EVENT_PREFIXES.FORM_PAGE1),
+  PARENT_FORM_PAGE1: getEventName(EVENT_PREFIXES.PARENT_FORM_PAGE1),
   FORM_PAGE2_NEXT_REGULAR: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_REGULAR),
   FORM_PAGE2_NEXT_MASTERS: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_MASTERS),
   FORM_COMPLETE: getEventName(EVENT_PREFIXES.FORM_COMPLETE),

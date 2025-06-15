@@ -28,6 +28,7 @@ export const personalDetailsSchema = z.object({
   parentName: z.string().min(2, "Please answer this question"),
   email: z.string().email("Please enter a valid email address"),
   phoneNumber: z.string().regex(/^[0-9]{10}$/, "Please enter a valid 10-digit phone number"),
+  areaOfResidence: z.string().min(1, "Please enter your area of residence"),
   whatsappConsent: z.boolean().default(true)
 });
 
