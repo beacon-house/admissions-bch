@@ -1,3 +1,13 @@
+/**
+ * Meta Pixel Event Tracking Library
+ * 
+ * Purpose: Handles Meta Pixel initialization and custom event tracking with environment-specific naming.
+ * All event names include an environment suffix for proper tracking across different environments.
+ * 
+ * Changes made:
+ * - Added QUALIFIED_LEAD_RECEIVED event to track qualified leads (bch, lum-l1, lum-l2)
+ */
+
 import { trackEvent } from './analytics';
 import { useFormStore } from '@/store/formStore';
 
@@ -20,6 +30,9 @@ const EVENT_PREFIXES = {
   FORM_PAGE2_NEXT_REGULAR: 'admissions_page2_next_regular',
   FORM_PAGE2_NEXT_MASTERS: 'admissions_page2_next_masters',
   FORM_COMPLETE: 'admissions_form_complete',
+  
+  // Lead Qualification Event (1)
+  QUALIFIED_LEAD_RECEIVED: 'admissions_qualified_lead_received',
   
   // Counselling Form Event (1)
   PAGE3_VIEW: 'admissions_page3_view',
@@ -117,6 +130,9 @@ export const PIXEL_EVENTS = {
   FORM_PAGE2_NEXT_REGULAR: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_REGULAR),
   FORM_PAGE2_NEXT_MASTERS: getEventName(EVENT_PREFIXES.FORM_PAGE2_NEXT_MASTERS),
   FORM_COMPLETE: getEventName(EVENT_PREFIXES.FORM_COMPLETE),
+  
+  // Lead Qualification Event (1)
+  QUALIFIED_LEAD_RECEIVED: getEventName(EVENT_PREFIXES.QUALIFIED_LEAD_RECEIVED),
   
   // Counselling Form Event (1)
   getPage3ViewEvent: (leadCategory: string) => getEventName(EVENT_PREFIXES.PAGE3_VIEW, leadCategory),
