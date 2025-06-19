@@ -1,3 +1,14 @@
+/**
+ * FormContainer Component
+ * 
+ * Purpose: Main orchestrator for the multi-step form, handling form state management,
+ * lead categorization, validation, and submission workflow.
+ * 
+ * Changes made:
+ * - Added qualified lead event tracking for bch, lum-l1, and lum-l2 categories
+ * - Event is triggered after lead qualification in both onSubmitStep2 and onSubmitExtendedNurture
+ */
+
 import React, { useEffect, useState, useRef } from 'react';
 import { Progress } from '../ui/progress';
 import { PersonalDetailsForm } from './PersonalDetailsForm';
@@ -148,6 +159,18 @@ export default function FormContainer() {
         lead_category: leadCategory 
       });
       
+      // Track qualified lead event for bch, lum-l1, or lum-l2 categories
+      if (['bch', 'lum-l1', 'lum-l2'].includes(leadCategory)) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.QUALIFIED_LEAD_RECEIVED,
+          options: {
+            lead_category: leadCategory,
+            total_time_spent: Math.floor((Date.now() - startTime) / 1000),
+            ...getCommonEventProperties(finalData)
+          }
+        });
+      }
+      
       // Track the appropriate event based on form type
       if (formData.currentGrade === 'masters') {
         trackPixelEvent({
@@ -261,6 +284,18 @@ export default function FormContainer() {
           ...data
         }
       });
+      
+      // Track qualified lead event for bch, lum-l1, or lum-l2 categories after re-categorization
+      if (['bch', 'lum-l1', 'lum-l2'].includes(recategorizedLeadCategory)) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.QUALIFIED_LEAD_RECEIVED,
+          options: {
+            lead_category: recategorizedLeadCategory,
+            total_time_spent: Math.floor((Date.now() - startTime) / 1000),
+            ...getCommonEventProperties(formData)
+          }
+        });
+      }
       
       // If re-categorized as "nurture", don't show counselling form
       if (recategorizedLeadCategory === 'nurture') {
