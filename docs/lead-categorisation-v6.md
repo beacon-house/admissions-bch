@@ -24,7 +24,7 @@ The system continues to segment incoming student applications into seven distinc
 Categorization logic is evaluated only if form was filled by a parent:
 
 **`bch`**:
-* Grade 9/10 parent-filled form with scholarship not required or partial
+* Grade 8/9/10 parent-filled form with scholarship not required or partial
 * Grade 11 parent-filled form targeting top-20 universities with scholarship not required or partial
 
 **`lum-l1`**:
@@ -58,7 +58,7 @@ Categorization logic is evaluated only if form was filled by a parent:
 ### Step 6: Re-Categorization from Extended Nurture (Parent-Filled Only)
 
 **Based on partial funding approach:**
-* `accept_loans` → `lum-l1`
+* `accept_loans` → `lum-l2`
 * `affordable_alternatives` → `lum-l2`
 * Others → stay as `nurture`
 

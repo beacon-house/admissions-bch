@@ -41,7 +41,13 @@ const EVENT_PREFIXES = {
   // Complete Flow Events (3)
   FLOW_COMPLETE_BCH: 'admissions_flow_complete_bch',
   FLOW_COMPLETE_LUMINAIRE: 'admissions_flow_complete_luminaire',
-  FLOW_COMPLETE_MASTERS: 'admissions_flow_complete_masters'
+  FLOW_COMPLETE_MASTERS: 'admissions_flow_complete_masters',
+  
+  // New Custom Events (4)
+  STUDENT_LEAD: 'admissions_student_lead',
+  SPAMMY_PARENT: 'admissions_spammy_parent',
+  MASTERS_LEAD: 'admissions_masters_lead',
+  STATEBOARD_PARENT: 'admissions_stateboard_parent'
 } as const;
 
 // Helper function to get environment-specific event name
@@ -141,5 +147,11 @@ export const PIXEL_EVENTS = {
   // Complete Flow Events (3)
   FLOW_COMPLETE_BCH: getEventName(EVENT_PREFIXES.FLOW_COMPLETE_BCH),
   FLOW_COMPLETE_LUMINAIRE: getEventName(EVENT_PREFIXES.FLOW_COMPLETE_LUMINAIRE),
-  FLOW_COMPLETE_MASTERS: getEventName(EVENT_PREFIXES.FLOW_COMPLETE_MASTERS)
+  FLOW_COMPLETE_MASTERS: getEventName(EVENT_PREFIXES.FLOW_COMPLETE_MASTERS),
+  
+  // New Custom Events (4)
+  STUDENT_LEAD: getEventName(EVENT_PREFIXES.STUDENT_LEAD),
+  SPAMMY_PARENT: getEventName(EVENT_PREFIXES.SPAMMY_PARENT),
+  MASTERS_LEAD: getEventName(EVENT_PREFIXES.MASTERS_LEAD),
+  STATEBOARD_PARENT: getEventName(EVENT_PREFIXES.STATEBOARD_PARENT)
 } as const;

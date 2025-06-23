@@ -52,6 +52,22 @@ export default function FormContainer() {
       await validateForm(1, data);
       updateFormData(data);
       
+      // Track new student lead event
+      if (data.formFillerType === 'student') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.STUDENT_LEAD,
+          options: getCommonEventProperties(data)
+        });
+      }
+      
+      // Track new masters lead event
+      if (data.currentGrade === 'masters') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.MASTERS_LEAD,
+          options: getCommonEventProperties(data)
+        });
+      }
+      
       trackPixelEvent({
         name: PIXEL_EVENTS.FORM_PAGE1,
         options: { 
@@ -124,6 +140,22 @@ export default function FormContainer() {
       
       // Combine form data
       const finalData = { ...formData, ...data };
+      
+      // Track new spammy parent event
+      if (finalData.formFillerType === 'parent' && (finalData.gpaValue === "10" || finalData.percentageValue === "100")) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.SPAMMY_PARENT,
+          options: getCommonEventProperties(finalData)
+        });
+      }
+      
+      // Track new stateboard parent event
+      if (finalData.formFillerType === 'parent' && finalData.curriculumType === 'State_Boards') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.STATEBOARD_PARENT,
+          options: getCommonEventProperties(finalData)
+        });
+      }
       
       // Determine lead category
       const leadCategory = formData.currentGrade === 'masters' 
