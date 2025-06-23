@@ -51,7 +51,7 @@ export const determineLeadCategory = (
       
       // Updated categorization based on new logic:
       if (partialFundingApproach === 'accept_loans') {
-        return 'lum-l1';
+        return 'lum-l2';
       } else if (partialFundingApproach === 'affordable_alternatives') {
         return 'lum-l2';
       } else {
@@ -72,7 +72,7 @@ export const determineLeadCategory = (
       if (partialFundingApproach === 'accept_cover_remaining') {
         // Still need to handle grades 9, 10 or grade 11 with top_20 target
         if (
-          ['9', '10'].includes(currentGrade) ||
+          ['8', '9', '10'].includes(currentGrade) ||
           (currentGrade === '11' && targetUniversityRank === 'top_20' && ['IB', 'IGCSE'].includes(curriculumType))
         ) {
           return 'bch';
@@ -129,7 +129,7 @@ export const determineLeadCategory = (
   // BCH category
   // Case 1: Grade 9 or 10, parent-filled form, scholarship not required or partial
   if (
-    ['9', '10'].includes(currentGrade) &&
+    ['8', '9', '10'].includes(currentGrade) &&
     formFillerType === 'parent' &&
     (scholarshipRequirement === 'scholarship_optional' || scholarshipRequirement === 'partial_scholarship')
   ) {

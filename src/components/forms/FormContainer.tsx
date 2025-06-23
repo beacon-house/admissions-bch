@@ -52,6 +52,22 @@ export default function FormContainer() {
       await validateForm(1, data);
       updateFormData(data);
       
+      // Track new student lead event
+      if (data.formFillerType === 'student') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.STUDENT_LEAD,
+          options: getCommonEventProperties(data)
+        });
+      }
+      
+      // Track new masters lead event
+      if (data.currentGrade === 'masters') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.MASTERS_LEAD,
+          options: getCommonEventProperties(data)
+        });
+      }
+      
       trackPixelEvent({
         name: PIXEL_EVENTS.FORM_PAGE1,
         options: { 
@@ -124,6 +140,27 @@ export default function FormContainer() {
       
       // Combine form data
       const finalData = { ...formData, ...data };
+      
+      // CRITICAL: Track events IMMEDIATELY after finalData is available, before any early returns
+      // Track spammy parent event (GPA=10 or Percentage=100)
+      if (finalData.formFillerType === 'parent' && (finalData.gpaValue === "10" || finalData.percentageValue === "100")) {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.SPAMMY_PARENT,
+          options: {
+            ...getCommonEventProperties(finalData),
+            gpa_value: finalData.gpaValue,
+            percentage_value: finalData.percentageValue
+          }
+        });
+      }
+      
+      // Track stateboard parent event
+      if (finalData.formFillerType === 'parent' && finalData.curriculumType === 'State_Boards') {
+        trackPixelEvent({
+          name: PIXEL_EVENTS.STATEBOARD_PARENT,
+          options: getCommonEventProperties(finalData)
+        });
+      }
       
       // Determine lead category
       const leadCategory = formData.currentGrade === 'masters' 
@@ -208,9 +245,18 @@ export default function FormContainer() {
       // Different flows based on lead category and grade
       if (leadCategory === 'nurture') {
         // CHANGE: Only show extended nurture form for grades 11 and 12 AND parent form fillers
-        // AND if not a spam lead (gpa=10 or percentage=100)
-        const isSpamLead = finalData.gpaValue === "10" || finalData.percentageValue === "100";
-        if (!isSpamLead && ['11', '12'].includes(formData.currentGrade || '') && finalData.formFillerType === 'parent') {
+        // Check for spam leads and submit directly
+        if (finalData.gpaValue === "10" || finalData.percentageValue === "100") {
+          // Spam lead - submit directly
+          setSubmitting(true);
+          await submitFormData({
+            ...formData,
+            ...data,
+            lead_category: leadCategory
+          }, 2, startTime, true, triggeredEvents);
+          setSubmitting(false);
+          setSubmitted(true);
+        } else if (['11', '12'].includes(formData.currentGrade || '') && finalData.formFillerType === 'parent') {
           // For grade 11 or 12 NURTURE leads with parent form fillers, show extended form
           window.scrollTo(0, 0);
           // Show nurture-specific evaluation animation

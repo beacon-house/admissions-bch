@@ -31,7 +31,7 @@ export function MastersAcademicInfo({
   control // Receive control from parent
 }: MastersAcademicInfoProps) {
   // Helper function to handle numeric input with optional decimal point
-  const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, min: number, max: number) => {
+  const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, min: number, max: number, fieldName: 'gpaValue' | 'percentageValue') => {
     const value = e.target.value;
     
     // Allow empty input for user to type
@@ -55,8 +55,13 @@ export function MastersAcademicInfo({
     if (!isNaN(numValue)) {
       if (numValue < min) {
         e.target.value = min.toString();
+        setValue(fieldName, min.toString());
       } else if (numValue > max) {
         e.target.value = max.toString();
+        setValue(fieldName, max.toString());
+      } else {
+        // Value is within range, update form state with the current value
+        setValue(fieldName, e.target.value);
       }
     }
   };
@@ -115,7 +120,7 @@ export function MastersAcademicInfo({
                 {...register('gpaValue')}
                 className="h-12 bg-white"
                 suffix="/10"
-                onChange={(e) => handleNumericInput(e, 1, 10)}
+                onChange={(e) => handleNumericInput(e, 1, 10, 'gpaValue')}
               />
             {errors.gpaValue && (
               <p className="text-sm text-red-500 italic">{errors.gpaValue.message}</p>
@@ -132,7 +137,7 @@ export function MastersAcademicInfo({
                 {...register('percentageValue')}
                 className="h-12 bg-white"
                 suffix="%"
-                onChange={(e) => handleNumericInput(e, 1, 100)}
+                onChange={(e) => handleNumericInput(e, 1, 100, 'percentageValue')}
               />
             {errors.percentageValue && (
               <p className="text-sm text-red-500 italic">{errors.percentageValue.message}</p>
