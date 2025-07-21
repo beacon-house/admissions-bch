@@ -260,7 +260,7 @@ export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps
                 ) : (
                   <>
                     <p className="mb-2 leading-relaxed">
-                      Karthik earned his Masters from <span className="font-medium">Georgia Tech</span> and worked with <span className="font-medium">Coke and McKinsey</span> in the US. He founded Magic Crate (acquired by Byju's) and later led Byju's Test Prep division.
+                      Karthik earned his Masters from <span className="font-medium">Georgia Tech</span> and worked with <span className="font-medium">Coke and McKinsey</span> in the US. He founded Magic Crate (acquired by Byju's) and later led Byju\'s Test Prep division.
                     </p>
                     <p className="leading-relaxed">
                       With his international education background and corporate leadership experience, Karthik provides invaluable guidance to students aiming for prestigious universities abroad.
