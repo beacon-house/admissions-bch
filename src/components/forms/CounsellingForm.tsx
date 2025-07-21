@@ -29,7 +29,7 @@ interface TimeSlot {
 
 export function CounsellingForm({ onSubmit, leadCategory }: CounsellingFormProps) {
   // Determine which counselor to show based on lead category
-  const isBCH = leadCategory === 'bch';
+  const isBCH = leadCategory === 'bch' || leadCategory === 'lum-l1' || leadCategory === 'lum-l2';
   const counselorName = isBCH ? "Viswanathan" : "Karthik Lakshman";
   const counselorImage = isBCH ? "/vishy.png" : "/karthik.png";
   const linkedinUrl = isBCH 
