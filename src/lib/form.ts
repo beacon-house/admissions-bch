@@ -1,6 +1,7 @@
 import { LeadCategory, CompleteFormData } from '@/types/form';
 import { personalDetailsSchema, academicDetailsSchema } from '@/schemas/form';
 import { ZodError } from 'zod';
+import { UTMParameters } from './utm';
 
 export class FormValidationError extends Error {
   constructor(public errors: { [key: string]: string[] }) {
@@ -25,7 +26,8 @@ export const submitFormData = async (
   step: number,
   startTime: number,
   isComplete: boolean = false,
-  triggeredEvents: string[] = []
+  triggeredEvents: string[] = [],
+  utmParameters: UTMParameters = {}
 ): Promise<Response> => {
   const webhookUrl = import.meta.env.VITE_REGISTRATION_WEBHOOK_URL?.trim();
   if (!webhookUrl) {
@@ -140,6 +142,9 @@ export const submitFormData = async (
     
     // Triggered events tracking
     triggeredEvents: triggeredEvents.length > 0 ? triggeredEvents : null,
+    
+    // UTM Parameters
+    ...utmParameters,
     
     // Metadata
     total_time_spent: currentTime,

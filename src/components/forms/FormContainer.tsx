@@ -21,6 +21,7 @@ import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
 import { trackPixelEvent, PIXEL_EVENTS, getCommonEventProperties } from '@/lib/pixel';
 import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
+import { getCurrentUTMParameters } from '@/lib/utm';
 import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
 import { ExtendedNurtureData } from './ExtendedNurtureForm';
@@ -33,6 +34,7 @@ export default function FormContainer() {
     isSubmitted,
     startTime,
     triggeredEvents,
+    utmParameters,
     setStep,
     updateFormData,
     setSubmitting,
@@ -107,7 +109,7 @@ export default function FormContainer() {
         updateFormData({ lead_category: leadCategory });
         
         // Submit form with lead category
-        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents);
+        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents, utmParameters);
         setSubmitting(false);
         setSubmitted(true);
         return;
@@ -137,6 +139,9 @@ export default function FormContainer() {
       } else {
         await validateForm(2, data);
       }
+      
+      // Get current UTM parameters for submission
+      const currentUtmParams = getCurrentUTMParameters();
       
       // Combine form data
       const finalData = { ...formData, ...data };
@@ -236,7 +241,7 @@ export default function FormContainer() {
           ...formData,
           ...data,
           lead_category: leadCategory
-        }, 2, startTime, true, triggeredEvents);
+        }, 2, startTime, true, triggeredEvents, utmParameters);
         setSubmitting(false);
         setSubmitted(true);
         return;
@@ -253,7 +258,7 @@ export default function FormContainer() {
             ...formData,
             ...data,
             lead_category: leadCategory
-          }, 2, startTime, true, triggeredEvents);
+          }, 2, startTime, true, triggeredEvents, utmParameters);
           setSubmitting(false);
           setSubmitted(true);
         } else if (['11', '12'].includes(formData.currentGrade || '') && finalData.formFillerType === 'parent') {
@@ -276,7 +281,7 @@ export default function FormContainer() {
             ...formData,
             ...data,
             lead_category: leadCategory
-          }, 2, startTime, true, triggeredEvents);
+          }, 2, startTime, true, triggeredEvents, utmParameters);
           setSubmitting(false);
           setSubmitted(true);
         }
@@ -353,7 +358,7 @@ export default function FormContainer() {
           extendedNurture: {
             ...data
           }
-        }, 2.5, startTime, true, triggeredEvents);
+        }, 2.5, startTime, true, triggeredEvents, utmParameters);
         setSubmitting(false);
         setSubmitted(true);
       } else {
@@ -441,7 +446,7 @@ export default function FormContainer() {
       }
       
       // Submit all form data including counselling details
-      await submitFormData(finalData, 3, startTime, true, triggeredEvents);
+      await submitFormData(finalData, 3, startTime, true, triggeredEvents, utmParameters);
       
       setSubmitting(false);
       setSubmitted(true);

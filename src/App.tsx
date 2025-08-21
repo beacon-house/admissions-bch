@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { initializeAnalytics } from './lib/analytics';
 import { initializePixel, trackPixelEvent, PIXEL_EVENTS } from './lib/pixel';
+import { getUtmParametersFromUrl } from './lib/utm';
+import { useFormStore } from './store/formStore';
 import LandingPage from './components/LandingPage';
 import FormPage from './components/FormPage';
 import NotFound from './components/NotFound';
@@ -13,11 +15,17 @@ declare global {
 }
 
 function App() {
+  const { setUTMParameters } = useFormStore();
+  
   React.useEffect(() => {
     // Initialize Google Analytics
     initializeAnalytics();
     // Initialize Meta Pixel
     initializePixel();
+    
+    // Extract UTM parameters from current URL
+    const utmParams = getUtmParametersFromUrl();
+    setUTMParameters(utmParams);
     
     // Track page view
     trackPixelEvent({
@@ -27,7 +35,7 @@ function App() {
         page_location: window.location.href
       }
     });
-  }, []);
+  }, [setUTMParameters]);
 
   return (
     <Routes>
