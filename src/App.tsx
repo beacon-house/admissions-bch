@@ -2,7 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { initializeAnalytics } from './lib/analytics';
 import { initializePixel, trackPixelEvent, PIXEL_EVENTS } from './lib/pixel';
-import { initializeUTMTracking } from './lib/utm';
+import { getUtmParametersFromUrl } from './lib/utm';
 import { useFormStore } from './store/formStore';
 import LandingPage from './components/LandingPage';
 import FormPage from './components/FormPage';
@@ -23,8 +23,8 @@ function App() {
     // Initialize Meta Pixel
     initializePixel();
     
-    // Initialize UTM tracking
-    const utmParams = initializeUTMTracking();
+    // Extract UTM parameters from current URL
+    const utmParams = getUtmParametersFromUrl();
     setUTMParameters(utmParams);
     
     // Track page view

@@ -1,13 +1,13 @@
 /**
- * UTM Parameter Tracking Utility
+ * UTM Parameter Extraction Utility
  * 
- * Purpose: Handles extraction, storage, and retrieval of UTM parameters from URL
- * for tracking marketing campaign effectiveness through form submissions.
+ * Purpose: Extracts UTM parameters from the current URL for tracking campaign sources.
+ * This helps track where users are coming from (Google Ads, Facebook, email campaigns, etc.)
  * 
  * Changes made:
- * - Created utility functions to extract UTM parameters from URL
- * - Added localStorage persistence for UTM parameters across sessions
- * - Included standard UTM parameters plus additional tracking parameters
+ * - Created new utility to parse URL query parameters
+ * - Extracts standard UTM parameters safely
+ * - Returns clean UTMParameters object
  */
 
 export interface UTMParameters {
@@ -17,140 +17,79 @@ export interface UTMParameters {
   utm_term?: string;
   utm_content?: string;
   utm_id?: string;
-  gclid?: string; // Google Ads click ID
-  fbclid?: string; // Facebook click ID
-  msclkid?: string; // Microsoft Ads click ID
-  ttclid?: string; // TikTok click ID
-  referrer?: string; // Document referrer
-  landing_page?: string; // Initial landing page
 }
 
-const UTM_STORAGE_KEY = 'beacon_house_utm_params';
-const UTM_EXPIRY_KEY = 'beacon_house_utm_expiry';
-const UTM_EXPIRY_DAYS = 30; // UTM parameters expire after 30 days
-
 /**
- * Extract UTM parameters from current URL
+ * Extract UTM parameters from the current URL
+ * @returns UTMParameters object with extracted UTM values
  */
-export const extractUTMParameters = (): UTMParameters => {
-  const urlParams = new URLSearchParams(window.location.search);
-  const utmParams: UTMParameters = {};
-
-  // Standard UTM parameters
-  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'utm_id'];
-  utmKeys.forEach(key => {
-    const value = urlParams.get(key);
-    if (value) {
-      utmParams[key as keyof UTMParameters] = value;
-    }
-  });
-
-  // Additional tracking parameters
-  const additionalKeys = ['gclid', 'fbclid', 'msclkid', 'ttclid'];
-  additionalKeys.forEach(key => {
-    const value = urlParams.get(key);
-    if (value) {
-      utmParams[key as keyof UTMParameters] = value;
-    }
-  });
-
-  // Add referrer information
-  if (document.referrer) {
-    utmParams.referrer = document.referrer;
-  }
-
-  // Add landing page
-  utmParams.landing_page = window.location.href;
-
-  return utmParams;
-};
-
-/**
- * Store UTM parameters in localStorage with expiry
- */
-export const storeUTMParameters = (utmParams: UTMParameters): void => {
+export const getUtmParametersFromUrl = (): UTMParameters => {
+  const utm: UTMParameters = {};
+  
   try {
-    const expiryDate = new Date();
-    expiryDate.setDate(expiryDate.getDate() + UTM_EXPIRY_DAYS);
+    const params = new URLSearchParams(window.location.search);
     
-    localStorage.setItem(UTM_STORAGE_KEY, JSON.stringify(utmParams));
-    localStorage.setItem(UTM_EXPIRY_KEY, expiryDate.toISOString());
-  } catch (error) {
-    console.warn('Failed to store UTM parameters:', error);
-  }
-};
-
-/**
- * Retrieve UTM parameters from localStorage
- */
-export const getStoredUTMParameters = (): UTMParameters | null => {
-  try {
-    const storedParams = localStorage.getItem(UTM_STORAGE_KEY);
-    const expiryDate = localStorage.getItem(UTM_EXPIRY_KEY);
+    // Extract standard UTM parameters
+    if (params.has('utm_source')) utm.utm_source = params.get('utm_source') || undefined;
+    if (params.has('utm_medium')) utm.utm_medium = params.get('utm_medium') || undefined;
+    if (params.has('utm_campaign')) utm.utm_campaign = params.get('utm_campaign') || undefined;
+    if (params.has('utm_term')) utm.utm_term = params.get('utm_term') || undefined;
+    if (params.has('utm_content')) utm.utm_content = params.get('utm_content') || undefined;
+    if (params.has('utm_id')) utm.utm_id = params.get('utm_id') || undefined;
     
-    if (!storedParams || !expiryDate) {
-      return null;
+    // Log extracted UTM parameters for debugging
+    const hasUtm = Object.keys(utm).length > 0;
+    if (hasUtm) {
+      console.log('📊 UTM Parameters extracted:', utm);
+    } else {
+      console.log('📊 No UTM parameters found in URL');
     }
     
-    // Check if parameters have expired
-    if (new Date() > new Date(expiryDate)) {
-      clearStoredUTMParameters();
-      return null;
-    }
-    
-    return JSON.parse(storedParams);
+    return utm;
   } catch (error) {
-    console.warn('Failed to retrieve UTM parameters:', error);
-    return null;
+    console.error('Error extracting UTM parameters:', error);
+    return {};
   }
 };
 
 /**
- * Clear stored UTM parameters
+ * Check if any UTM parameters exist in the current URL
+ * @returns boolean indicating if UTM parameters are present
  */
-export const clearStoredUTMParameters = (): void => {
-  try {
-    localStorage.removeItem(UTM_STORAGE_KEY);
-    localStorage.removeItem(UTM_EXPIRY_KEY);
-  } catch (error) {
-    console.warn('Failed to clear UTM parameters:', error);
-  }
+export const hasUtmParameters = (): boolean => {
+  const utm = getUtmParametersFromUrl();
+  return Object.keys(utm).length > 0;
 };
 
 /**
- * Initialize UTM tracking - extract from URL and store
+ * Get a formatted string representation of UTM parameters for logging
+ * @param utm UTMParameters object
+ * @returns formatted string
+ */
+export const formatUtmForLogging = (utm: UTMParameters): string => {
+  const parts: string[] = [];
+  
+  if (utm.utm_source) parts.push(`source: ${utm.utm_source}`);
+  if (utm.utm_medium) parts.push(`medium: ${utm.utm_medium}`);
+  if (utm.utm_campaign) parts.push(`campaign: ${utm.utm_campaign}`);
+  if (utm.utm_term) parts.push(`term: ${utm.utm_term}`);
+  if (utm.utm_content) parts.push(`content: ${utm.utm_content}`);
+  if (utm.utm_id) parts.push(`id: ${utm.utm_id}`);
+  
+  return parts.length > 0 ? parts.join(', ') : 'No UTM parameters';
+};
+
+/**
+ * Initialize UTM tracking - extract from URL
  * Should be called when the app loads
  */
 export const initializeUTMTracking = (): UTMParameters => {
-  // First, try to get existing stored parameters
-  let utmParams = getStoredUTMParameters() || {};
-  
-  // Extract current URL parameters
-  const currentUTMParams = extractUTMParameters();
-  
-  // If we have new UTM parameters in the URL, they take precedence
-  const hasNewUTMParams = Object.keys(currentUTMParams).some(key => 
-    key.startsWith('utm_') || ['gclid', 'fbclid', 'msclkid', 'ttclid'].includes(key)
-  );
-  
-  if (hasNewUTMParams) {
-    // Merge with existing parameters, giving priority to new ones
-    utmParams = { ...utmParams, ...currentUTMParams };
-    storeUTMParameters(utmParams);
-  } else if (Object.keys(utmParams).length === 0) {
-    // If no stored parameters and no URL parameters, still capture referrer and landing page
-    utmParams = currentUTMParams;
-    if (Object.keys(utmParams).length > 0) {
-      storeUTMParameters(utmParams);
-    }
-  }
-  
-  return utmParams;
+  return getUtmParametersFromUrl();
 };
 
 /**
  * Get current UTM parameters for form submission
  */
 export const getCurrentUTMParameters = (): UTMParameters => {
-  return getStoredUTMParameters() || {};
+  return getUtmParametersFromUrl();
 };

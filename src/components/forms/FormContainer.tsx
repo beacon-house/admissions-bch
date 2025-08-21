@@ -21,6 +21,7 @@ import { useFormStore } from '@/store/formStore';
 import { trackFormView, trackFormStepComplete, trackFormAbandonment, trackFormError } from '@/lib/analytics';
 import { trackPixelEvent, PIXEL_EVENTS, getCommonEventProperties } from '@/lib/pixel';
 import { submitFormData, validateForm, FormValidationError } from '@/lib/form';
+import { getCurrentUTMParameters } from '@/lib/utm';
 import { determineLeadCategory } from '@/lib/leadCategorization';
 import { toast } from '@/components/ui/toast';
 import { ExtendedNurtureData } from './ExtendedNurtureForm';
@@ -52,6 +53,9 @@ export default function FormContainer() {
     try {
       await validateForm(1, data);
       updateFormData(data);
+      
+      // Get current UTM parameters for submission
+      const currentUtmParams = getCurrentUTMParameters();
       
       // Track new student lead event
       if (data.formFillerType === 'student') {
@@ -108,7 +112,7 @@ export default function FormContainer() {
         updateFormData({ lead_category: leadCategory });
         
         // Submit form with lead category
-        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents, utmParameters);
+        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents, currentUtmParams);
         setSubmitting(false);
         setSubmitted(true);
         return;
@@ -138,6 +142,9 @@ export default function FormContainer() {
       } else {
         await validateForm(2, data);
       }
+      
+      // Get current UTM parameters for submission
+      const currentUtmParams = getCurrentUTMParameters();
       
       // Combine form data
       const finalData = { ...formData, ...data };
