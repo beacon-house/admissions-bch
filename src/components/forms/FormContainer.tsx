@@ -446,7 +446,7 @@ export default function FormContainer() {
       }
       
       // Submit all form data including counselling details
-      await submitFormData(finalData, 3, startTime, true, triggeredEvents, currentUtmParams);
+      await submitFormData(finalData, 3, startTime, true, triggeredEvents, utmParameters);
       
       setSubmitting(false);
       setSubmitted(true);
