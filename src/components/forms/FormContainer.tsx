@@ -54,9 +54,6 @@ export default function FormContainer() {
       await validateForm(1, data);
       updateFormData(data);
       
-      // Get current UTM parameters for submission
-      const currentUtmParams = getCurrentUTMParameters();
-      
       // Track new student lead event
       if (data.formFillerType === 'student') {
         trackPixelEvent({
@@ -112,7 +109,7 @@ export default function FormContainer() {
         updateFormData({ lead_category: leadCategory });
         
         // Submit form with lead category
-        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents, currentUtmParams);
+        await submitFormData({...data, lead_category: leadCategory}, 1, startTime, true, triggeredEvents, utmParameters);
         setSubmitting(false);
         setSubmitted(true);
         return;
