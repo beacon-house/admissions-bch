@@ -28,6 +28,7 @@ jspm_packages/
 .vscode/
 .idea/
 *.sublime-workspace
+.claude/
 *.sublime-project
 
 # Misc
