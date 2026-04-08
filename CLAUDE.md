@@ -13,6 +13,9 @@ npm run lint     # ESLint
 npm run preview  # Preview build
 ```
 
+## MANDATORY Rule
+**Always use AskUserQuestion tool** when you need clarification, have multiple approaches, or are unsure about anything. Krishna prefers iterative clarification over assumptions. Don't guess. Don't assume. Ask first, then deliver.
+
 ## Context Docs
 Load `.context/` files when needed:
 
